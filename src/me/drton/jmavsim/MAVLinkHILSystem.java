@@ -110,6 +110,24 @@ public class MAVLinkHILSystem extends MAVLinkSystem {
                 sendMessage(msg_gps);
             }
         }
+
+        FlowData flowData = sensors.getFlowData();
+        if (flowData != null) {
+            MAVLinkMessage msg_flow = new MAVLinkMessage(schema, "HIL_OPTICAL_FLOW", sysId, componentId);
+            msg_flow.set("time_usec", tu);
+            msg_flow.set("sensor_id", 0);
+            msg_flow.set("integration_time_us", flowData.integration_time);
+            msg_flow.set("integrated_x", flowData.integrated_flow.x);
+            msg_flow.set("integrated_y", flowData.integrated_flow.y);
+            msg_flow.set("integrated_xgyro", flowData.integrated_gyro.x);
+            msg_flow.set("integrated_ygyro", flowData.integrated_gyro.y);
+            msg_flow.set("integrated_zgyro", flowData.integrated_gyro.z);
+            msg_flow.set("temperature", 50);
+            msg_flow.set("quality", flowData.quality);
+            msg_flow.set("time_delta_distance_us", 0);
+            msg_flow.set("distance", flowData.distance);
+            sendMessage(msg_flow);
+        }
     }
 
     private void initMavLink() {

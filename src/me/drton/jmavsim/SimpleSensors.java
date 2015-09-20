@@ -4,6 +4,7 @@ import me.drton.jmavlib.geo.GlobalPositionProjector;
 import me.drton.jmavlib.processing.DelayLine;
 
 import javax.vecmath.Matrix3d;
+import javax.vecmath.Vector2d;
 import javax.vecmath.Vector3d;
 
 /**
@@ -18,6 +19,12 @@ public class SimpleSensors implements Sensors {
     private long gpsLast = 0;
     private GNSSReport gps = new GNSSReport();
     private boolean gpsUpdated = false;
+
+    private FlowData flowData = null;
+    private long flowInterval = 50;
+    private long flowLast = 0;
+    private boolean flowUpdated = false;
+    //private Matrix3d last_rotation
 
     @Override
     public void setObject(DynamicObject object) {
@@ -68,6 +75,22 @@ public class SimpleSensors implements Sensors {
     }
 
     @Override
+    public double getSonarDist() {
+        double dist = getGroundDistance();
+        if (dist < 0.3) dist = 0.3;
+        else if (dist > 4.0) dist = 4.0;
+
+        return dist;
+    }
+
+    private double getGroundDistance()
+    {
+        double height = -object.getPosition().z;
+        Matrix3d rot = new Matrix3d(object.getRotation());
+        return height / rot.getM22();
+    }
+
+    @Override
     public GNSSReport getGNSS() {
         return gps;
     }
@@ -77,6 +100,14 @@ public class SimpleSensors implements Sensors {
         boolean res = gpsUpdated;
         gpsUpdated = false;
         return res;
+    }
+
+    @Override
+    public FlowData getFlowData() {
+        if (flowUpdated)
+            return flowData;
+        else
+            return null;
     }
 
     @Override
@@ -95,5 +126,28 @@ public class SimpleSensors implements Sensors {
             gpsCurrent.time = System.currentTimeMillis() * 1000;
             gps = gpsDelayLine.getOutput(t, gpsCurrent);
         }
+
+        if (t > flowLast + flowInterval) {
+            flowUpdated = true;
+            if (flowData == null) { flowData = new FlowData(); return; }
+
+            flowData.integration_time = (flowLast - t) * 1000;
+            flowLast = t;
+            flowData.distance = getSonarDist();
+
+            double ground_distance = getGroundDistance();
+            if (ground_distance < 0.3 || ground_distance > 4.0) // TODO: could also depend on angle and velocity
+            {
+                flowData.quality = 0;
+            } else {
+                //Vector2d xy_velocity = new Vector2d(object.getVelocity().x, object.getVelocity().y);
+                //flowData.integrated_flow = xy_velocity.scale((1/ground_distance) * flowData.integration_time); // TODO: needs adding rotational flow
+                //flowData.integrated_gyro = ; TODO: compute this from delta orientation between updates
+                //flowData.quality = 255; // TODO: to be enabled once this is finished
+                flowData.quality = 0;
+            }
+        }
+        else
+            flowUpdated = false;
     }
 }

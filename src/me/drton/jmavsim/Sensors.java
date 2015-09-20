@@ -16,9 +16,13 @@ public interface Sensors {
 
     double getPressureAlt();
 
+    double getSonarDist();
+
     GNSSReport getGNSS();
 
     boolean isGPSUpdated();
+
+    FlowData getFlowData();
 
     void update(long t);
 }
