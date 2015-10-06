@@ -74,13 +74,13 @@ public class SimpleSensors implements Sensors {
         Matrix3d rot = new Matrix3d(object.getRotation());
         rot.transpose();
         rot.transform(accBody);
-        accBody = addZeroMeanNoise(accBody, 0.05);
+        accBody = addZeroMeanNoise(accBody, 0.8);
         return accBody;
     }
 
     @Override
     public Vector3d getGyro() {
-        return addZeroMeanNoise(object.getRotationRate(), 0.01);
+        return addZeroMeanNoise(object.getRotationRate(), 0.5);
     }
 
     @Override
@@ -89,7 +89,7 @@ public class SimpleSensors implements Sensors {
         Matrix3d rot = new Matrix3d(object.getRotation());
         rot.transpose();
         rot.transform(mag);
-        return addZeroMeanNoise(mag, 0.005);
+        return addZeroMeanNoise(mag, 0.3);
     }
 
     @Override
