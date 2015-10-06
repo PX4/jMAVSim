@@ -41,7 +41,7 @@ public class SimpleSensors implements Sensors {
             x0 = 0.0;
         }
 
-        return x0 * (stdDev * stdDev);
+        return x0 * stdDev;
     }
 
     public Vector3d addZeroMeanNoise(Vector3d vIn, double stdDev) {
