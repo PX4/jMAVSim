@@ -8,6 +8,7 @@ import javax.vecmath.Vector3d;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.ArrayList;
 
 /**
  * MAVLinkHILSystem is MAVLink bridge between AbstractVehicle and autopilot connected via MAVLink.
@@ -21,7 +22,6 @@ public class MAVLinkHILSystem extends MAVLinkSystem {
     private long initTime = 0;
     private long initDelay = 500;
     private boolean zeroBased = true;
-    private boolean modeEncodesGroup = false;
 
     /**
      * Create MAVLinkHILSimulator, MAVLink system that sends simulated sensors to autopilot and passes controls from
@@ -40,15 +40,15 @@ public class MAVLinkHILSystem extends MAVLinkSystem {
     public void handleMessage(MAVLinkMessage msg) {
         super.handleMessage(msg);
         long t = System.currentTimeMillis();
-        if ("HIL_CONTROLS".equals(msg.getMsgName())) {
-            List<Double> control = Arrays.asList(msg.getDouble("roll_ailerons"), msg.getDouble("pitch_elevator"),
-                    msg.getDouble("yaw_rudder"), msg.getDouble("throttle"), msg.getDouble("aux1"),
-                    msg.getDouble("aux2"), msg.getDouble("aux3"), msg.getDouble("aux4"));
+        if ("HIL_ACTUATOR_CONTROLS".equals(msg.getMsgName())) {
+            List<Double> control = new ArrayList<Double>();
+            for (int i = 0; i < 8; ++i) {
+                control.add(((Number)((Object[])msg.get("controls"))[i]).doubleValue());
+            }
 
             // Get the system arming state if the mode
             // field is valid
             int mode = msg.getInt("mode");
-            int nav_mode = msg.getInt("nav_mode");
             boolean armed = true;
 
             if (mode != 0) {
@@ -59,18 +59,41 @@ public class MAVLinkHILSystem extends MAVLinkSystem {
                 }
             }
 
-            // Ignore all other output groups than the first
-            if (!modeEncodesGroup || nav_mode == 0) {
-
-                // If the range is -1..+1 for motors, adjust it here
-                for (int i = 0; i < control.size(); i++) {
-                    if (!zeroBased) {
-                        control.set(i, (control.get(i) + 1.0) / 2.0);
-                    }
+            // If the range is -1..+1 for motors, adjust it here
+            for (int i = 0; i < control.size(); i++) {
+                if (!zeroBased) {
+                    control.set(i, (control.get(i) + 1.0) / 2.0);
                 }
-
-                vehicle.setControl(control);
             }
+
+            vehicle.setControl(control);
+
+        } else if ("HIL_CONTROLS".equals(msg.getMsgName())) { //this is deprecated, but we still support accept it for now
+            List<Double> control = Arrays.asList(msg.getDouble("roll_ailerons"), msg.getDouble("pitch_elevator"),
+                    msg.getDouble("yaw_rudder"), msg.getDouble("throttle"), msg.getDouble("aux1"),
+                    msg.getDouble("aux2"), msg.getDouble("aux3"), msg.getDouble("aux4"));
+
+            // Get the system arming state if the mode
+            // field is valid
+            int mode = msg.getInt("mode");
+            boolean armed = true;
+
+            if (mode != 0) {
+                if ((mode & 128) > 0 /* armed */) {
+                    armed = true;
+                } else {
+                    armed = false;
+                }
+            }
+
+            // If the range is -1..+1 for motors, adjust it here
+            for (int i = 0; i < control.size(); i++) {
+                if (!zeroBased) {
+                    control.set(i, (control.get(i) + 1.0) / 2.0);
+                }
+            }
+
+            vehicle.setControl(control);
 
         } else if ("HEARTBEAT".equals(msg.getMsgName())) {
             if (!gotHeartBeat && !stopped) {
@@ -94,7 +117,6 @@ public class MAVLinkHILSystem extends MAVLinkSystem {
             }
             if (msg.getInt("autopilot") == 12) {
                 zeroBased = false;
-                modeEncodesGroup = true;
             }
         } else if ("STATUSTEXT".equals(msg.getMsgName())) {
             System.out.println("MSG: " + msg.getString("text"));

@@ -154,6 +154,7 @@ public class Simulator implements Runnable {
         // Don't spam ground station with HIL messages
         if (schema != null) {
             connCommon.addSkipMessage(schema.getMessageDefinition("HIL_CONTROLS").id);
+            connCommon.addSkipMessage(schema.getMessageDefinition("HIL_ACTUATOR_CONTROLS").id);
             connCommon.addSkipMessage(schema.getMessageDefinition("HIL_SENSOR").id);
             connCommon.addSkipMessage(schema.getMessageDefinition("HIL_GPS").id);
         }
