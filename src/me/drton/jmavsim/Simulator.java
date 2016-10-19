@@ -306,7 +306,7 @@ public class Simulator implements Runnable {
         I.m11 = 0.005;  // Y
         I.m22 = 0.009;  // Z
         vehicle.setMomentOfInertia(I);
-        vehicle.setMass(0.8);
+        vehicle.setMass(1.0); // 0.8 is too light for HITL mode simulation on Pixhawk (drone just takes off when Armed).
         vehicle.setDragMove(0.01);
         SimpleSensors sensors = new SimpleSensors();
         sensors.setGPSInterval(50);

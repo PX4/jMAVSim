@@ -1,3 +1,4 @@
 *.class
 out
 jMAVSim.iws
+/.idea
