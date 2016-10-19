@@ -183,38 +183,39 @@ public class MAVLinkHILSystem extends MAVLinkSystem {
         }
         sendMessage(msg_sensor);
 
-        MAVLinkMessage msg_hil_state = new MAVLinkMessage(schema, "HIL_STATE_QUATERNION", sysId, componentId);
-        msg_hil_state.set("time_usec", tu);
-
-        Float[] q = RotationConversion.quaternionByEulerAngles(vehicle.attitude);
-        msg_hil_state.set("attitude_quaternion", q);
-
-        Vector3d v3d = vehicle.getRotationRate();
-        msg_hil_state.set("rollspeed", (float)v3d.getX());
-        msg_hil_state.set("pitchspeed", (float)v3d.getY());
-        msg_hil_state.set("yawspeed", (float)v3d.getZ());
-
-        int alt = (int)(1000 * vehicle.position.getZ());
-        msg_hil_state.set("alt", alt);
-
-        v3d = vehicle.getVelocity();
-        msg_hil_state.set("vx", (int) (v3d.getX() * 100));
-        msg_hil_state.set("vy", (int) (v3d.getY() * 100));
-        msg_hil_state.set("vz", (int) (v3d.getZ() * 100));
-
-        Vector3d airSpeed = new Vector3d(vehicle.getVelocity());
-        airSpeed.scale(-1.0);
-        airSpeed.add(vehicle.getWorld().getEnvironment().getCurrentWind(vehicle.position));
-        float as_mag = (float) airSpeed.length();
-        msg_hil_state.set("true_airspeed", (int) (as_mag * 100));
-
-        v3d = vehicle.acceleration;
-        msg_hil_state.set("xacc", (int) (v3d.getX() * 1000));
-        msg_hil_state.set("yacc", (int) (v3d.getY() * 1000));
-        msg_hil_state.set("zacc", (int) (v3d.getZ() * 1000));
-
-
-        sendMessage(msg_hil_state);
+//      [clovett] This causes problems for HITL mode simulation.  Drone flies crazy because it is getting
+//      conflicting information.
+//        MAVLinkMessage msg_hil_state = new MAVLinkMessage(schema, "HIL_STATE_QUATERNION", sysId, componentId);
+//        msg_hil_state.set("time_usec", tu);
+//
+//        Float[] q = RotationConversion.quaternionByEulerAngles(vehicle.attitude);
+//        msg_hil_state.set("attitude_quaternion", q);
+//
+//        Vector3d v3d = vehicle.getRotationRate();
+//        msg_hil_state.set("rollspeed", (float)v3d.getX());
+//        msg_hil_state.set("pitchspeed", (float)v3d.getY());
+//        msg_hil_state.set("yawspeed", (float)v3d.getZ());
+//
+//        int alt = (int)(1000 * vehicle.position.getZ());
+//        msg_hil_state.set("alt", alt);
+//
+//        v3d = vehicle.getVelocity();
+//        msg_hil_state.set("vx", (int) (v3d.getX() * 100));
+//        msg_hil_state.set("vy", (int) (v3d.getY() * 100));
+//        msg_hil_state.set("vz", (int) (v3d.getZ() * 100));
+//
+//        Vector3d airSpeed = new Vector3d(vehicle.getVelocity());
+//        airSpeed.scale(-1.0);
+//        airSpeed.add(vehicle.getWorld().getEnvironment().getCurrentWind(vehicle.position));
+//        float as_mag = (float) airSpeed.length();
+//        msg_hil_state.set("true_airspeed", (int) (as_mag * 100));
+//
+//        v3d = vehicle.acceleration;
+//        msg_hil_state.set("xacc", (int) (v3d.getX() * 1000));
+//        msg_hil_state.set("yacc", (int) (v3d.getY() * 1000));
+//        msg_hil_state.set("zacc", (int) (v3d.getZ() * 1000));
+//
+//        sendMessage(msg_hil_state);
 
         // GPS
         if (sensors.isGPSUpdated()) {
