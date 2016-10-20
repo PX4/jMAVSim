@@ -23,6 +23,7 @@ public class MAVLinkHILSystem extends MAVLinkSystem {
     private long initTime = 0;
     private long initDelay = 500;
     private boolean zeroBased = true;
+    private boolean gotHilActuatorControls = false; //prefer HIL_ACTUATOR_CONTROLS in case we get both messages
 
     /**
      * Create MAVLinkHILSimulator, MAVLink system that sends simulated sensors to autopilot and passes controls from
@@ -42,6 +43,7 @@ public class MAVLinkHILSystem extends MAVLinkSystem {
         super.handleMessage(msg);
         long t = System.currentTimeMillis();
         if ("HIL_ACTUATOR_CONTROLS".equals(msg.getMsgName())) {
+            gotHilActuatorControls = true;
             List<Double> control = new ArrayList<Double>();
             for (int i = 0; i < 8; ++i) {
                 control.add(((Number)((Object[])msg.get("controls"))[i]).doubleValue());
@@ -69,7 +71,7 @@ public class MAVLinkHILSystem extends MAVLinkSystem {
 
             vehicle.setControl(control);
 
-        } else if ("HIL_CONTROLS".equals(msg.getMsgName())) { //this is deprecated, but we still support accept it for now
+        } else if ("HIL_CONTROLS".equals(msg.getMsgName()) && !gotHilActuatorControls) { //this is deprecated, but we still support it for now
             List<Double> control = Arrays.asList(msg.getDouble("roll_ailerons"), msg.getDouble("pitch_elevator"),
                     msg.getDouble("yaw_rudder"), msg.getDouble("throttle"), msg.getDouble("aux1"),
                     msg.getDouble("aux2"), msg.getDouble("aux3"), msg.getDouble("aux4"));
