@@ -24,6 +24,8 @@ public class MAVLinkHILSystem extends MAVLinkSystem {
     private long initDelay = 500;
     private boolean zeroBased = true;
     private boolean gotHilActuatorControls = false; //prefer HIL_ACTUATOR_CONTROLS in case we get both messages
+    private long hilStateUpdateInterval = -1; //don't publish by default
+    private long nextHilStatePub = 0;
 
     /**
      * Create MAVLinkHILSimulator, MAVLink system that sends simulated sensors to autopilot and passes controls from
@@ -98,6 +100,14 @@ public class MAVLinkHILSystem extends MAVLinkSystem {
 
             vehicle.setControl(control);
 
+        } else if ("COMMAND_LONG".equals(msg.getMsgName())) {
+            int command = msg.getInt("command");
+            if (command == 511) { //MAV_CMD_SET_MESSAGE_INTERVAL
+                int msg_id = (int)(msg.getFloat("param1")+0.5);
+                if (msg_id == 115) { //HIL_STATE_QUATERNION
+                    hilStateUpdateInterval = (int)(msg.getFloat("param2")+0.5);
+                }
+            }
         } else if ("HEARTBEAT".equals(msg.getMsgName())) {
             if (!gotHeartBeat && !stopped) {
                 if (sysId < 0 || sysId == msg.systemID) {
@@ -185,38 +195,40 @@ public class MAVLinkHILSystem extends MAVLinkSystem {
         }
         sendMessage(msg_sensor);
 
-        MAVLinkMessage msg_hil_state = new MAVLinkMessage(schema, "HIL_STATE_QUATERNION", sysId, componentId);
-        msg_hil_state.set("time_usec", tu);
+        if (hilStateUpdateInterval != -1 && nextHilStatePub <= tu) {
+            MAVLinkMessage msg_hil_state = new MAVLinkMessage(schema, "HIL_STATE_QUATERNION", sysId, componentId);
+            msg_hil_state.set("time_usec", tu);
 
-        Float[] q = RotationConversion.quaternionByEulerAngles(vehicle.attitude);
-        msg_hil_state.set("attitude_quaternion", q);
+            Float[] q = RotationConversion.quaternionByEulerAngles(vehicle.attitude);
+            msg_hil_state.set("attitude_quaternion", q);
 
-        Vector3d v3d = vehicle.getRotationRate();
-        msg_hil_state.set("rollspeed", (float)v3d.getX());
-        msg_hil_state.set("pitchspeed", (float)v3d.getY());
-        msg_hil_state.set("yawspeed", (float)v3d.getZ());
+            Vector3d v3d = vehicle.getRotationRate();
+            msg_hil_state.set("rollspeed", (float) v3d.getX());
+            msg_hil_state.set("pitchspeed", (float) v3d.getY());
+            msg_hil_state.set("yawspeed", (float) v3d.getZ());
 
-        int alt = (int)(1000 * vehicle.position.getZ());
-        msg_hil_state.set("alt", alt);
+            int alt = (int) (1000 * vehicle.position.getZ());
+            msg_hil_state.set("alt", alt);
 
-        v3d = vehicle.getVelocity();
-        msg_hil_state.set("vx", (int) (v3d.getX() * 100));
-        msg_hil_state.set("vy", (int) (v3d.getY() * 100));
-        msg_hil_state.set("vz", (int) (v3d.getZ() * 100));
+            v3d = vehicle.getVelocity();
+            msg_hil_state.set("vx", (int) (v3d.getX() * 100));
+            msg_hil_state.set("vy", (int) (v3d.getY() * 100));
+            msg_hil_state.set("vz", (int) (v3d.getZ() * 100));
 
-        Vector3d airSpeed = new Vector3d(vehicle.getVelocity());
-        airSpeed.scale(-1.0);
-        airSpeed.add(vehicle.getWorld().getEnvironment().getCurrentWind(vehicle.position));
-        float as_mag = (float) airSpeed.length();
-        msg_hil_state.set("true_airspeed", (int) (as_mag * 100));
+            Vector3d airSpeed = new Vector3d(vehicle.getVelocity());
+            airSpeed.scale(-1.0);
+            airSpeed.add(vehicle.getWorld().getEnvironment().getCurrentWind(vehicle.position));
+            float as_mag = (float) airSpeed.length();
+            msg_hil_state.set("true_airspeed", (int) (as_mag * 100));
 
-        v3d = vehicle.acceleration;
-        msg_hil_state.set("xacc", (int) (v3d.getX() * 1000));
-        msg_hil_state.set("yacc", (int) (v3d.getY() * 1000));
-        msg_hil_state.set("zacc", (int) (v3d.getZ() * 1000));
+            v3d = vehicle.acceleration;
+            msg_hil_state.set("xacc", (int) (v3d.getX() * 1000));
+            msg_hil_state.set("yacc", (int) (v3d.getY() * 1000));
+            msg_hil_state.set("zacc", (int) (v3d.getZ() * 1000));
 
-
-        sendMessage(msg_hil_state);
+            sendMessage(msg_hil_state);
+            nextHilStatePub = tu + hilStateUpdateInterval;
+        }
 
         // GPS
         if (sensors.isGPSUpdated()) {
