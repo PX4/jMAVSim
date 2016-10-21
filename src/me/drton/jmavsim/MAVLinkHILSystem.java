@@ -22,7 +22,6 @@ public class MAVLinkHILSystem extends MAVLinkSystem {
     private boolean stopped = false;
     private long initTime = 0;
     private long initDelay = 500;
-    private boolean zeroBased = true;
     private boolean gotHilActuatorControls = false; //prefer HIL_ACTUATOR_CONTROLS in case we get both messages
     private long hilStateUpdateInterval = -1; //don't publish by default
     private long nextHilStatePub = 0;
@@ -64,13 +63,6 @@ public class MAVLinkHILSystem extends MAVLinkSystem {
                 }
             }
 
-            // If the range is -1..+1 for motors, adjust it here
-            for (int i = 0; i < control.size(); i++) {
-                if (!zeroBased) {
-                    control.set(i, (control.get(i) + 1.0) / 2.0);
-                }
-            }
-
             vehicle.setControl(control);
 
         } else if ("HIL_CONTROLS".equals(msg.getMsgName()) && !gotHilActuatorControls) { //this is deprecated, but we still support it for now
@@ -88,13 +80,6 @@ public class MAVLinkHILSystem extends MAVLinkSystem {
                     armed = true;
                 } else {
                     armed = false;
-                }
-            }
-
-            // If the range is -1..+1 for motors, adjust it here
-            for (int i = 0; i < control.size(); i++) {
-                if (!zeroBased) {
-                    control.set(i, (control.get(i) + 1.0) / 2.0);
                 }
             }
 
@@ -128,9 +113,6 @@ public class MAVLinkHILSystem extends MAVLinkSystem {
             if ((msg.getInt("base_mode") & 128) == 0) {
                 vehicle.setControl(Collections.<Double>emptyList());
             }
-            if (msg.getInt("autopilot") == 12) {
-                zeroBased = false;
-            }
         } else if ("STATUSTEXT".equals(msg.getMsgName())) {
             System.out.println("MSG: " + msg.getString("text"));
         }
@@ -147,7 +129,7 @@ public class MAVLinkHILSystem extends MAVLinkSystem {
         stopped = false;
         inited = true;
     }
-    
+
     public void endSim() {
         if (!inited)
             return;
@@ -161,12 +143,12 @@ public class MAVLinkHILSystem extends MAVLinkSystem {
         stopped = true;
         vehicle.getSensors().setGPSStartTime(-1);
     }
-    
+
     @Override
     public void update(long t) {
         super.update(t);
         long tu = t * 1000; // Time in us
-        
+
         if (!this.inited)
             return;
 
