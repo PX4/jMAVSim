@@ -177,6 +177,7 @@ public class MAVLinkHILSystem extends MAVLinkSystem {
         }
         sendMessage(msg_sensor);
 
+        /* ground truth */
         if (hilStateUpdateInterval != -1 && nextHilStatePub <= tu) {
             MAVLinkMessage msg_hil_state = new MAVLinkMessage(schema, "HIL_STATE_QUATERNION", sysId, componentId);
             msg_hil_state.set("time_usec", tu);
@@ -191,6 +192,8 @@ public class MAVLinkHILSystem extends MAVLinkSystem {
 
             int alt = (int) (1000 * vehicle.position.getZ());
             msg_hil_state.set("alt", alt);
+            msg_hil_state.set("lat", (int)(sensors.getGlobalPosition().lat * 1.e7));
+            msg_hil_state.set("lon", (int)(sensors.getGlobalPosition().lon * 1.e7));
 
             v3d = vehicle.getVelocity();
             msg_hil_state.set("vx", (int) (v3d.getX() * 100));
