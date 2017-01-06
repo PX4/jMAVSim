@@ -313,7 +313,7 @@ public class Simulator implements Runnable {
         sensors.setNoise_Acc(0.05f);
         sensors.setNoise_Gyo(0.01f);
         sensors.setNoise_Mag(0.005f);
-        sensors.setNoise_Prs(0.0f);
+        sensors.setNoise_Prs(0.1f);
         vehicle.setSensors(sensors);
         //v.setDragRotate(0.1);
 
