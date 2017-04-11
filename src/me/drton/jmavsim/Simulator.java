@@ -244,7 +244,7 @@ public class Simulator implements Runnable {
         }
         catch (IOException e) {
             System.out.println("ERROR: Failed to open MAV port: " + e.getLocalizedMessage());
-//            shutdown = true;
+            shutdown = true;
         }
 
         if (COMMUNICATE_WITH_QGC) {
