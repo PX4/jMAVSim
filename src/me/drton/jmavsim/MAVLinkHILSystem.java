@@ -257,6 +257,28 @@ public class MAVLinkHILSystem extends MAVLinkSystem {
             msg_system_time.set("time_boot_ms", tu/1000);
             sendMessage(msg_system_time);
         }
+        
+        // Optic flow
+        if (sensors.isFlowUpdated()) {
+            FlowData flowData = sensors.getFlowData();
+            if (flowData != null && flowData.integrated_flow != null && flowData.integrated_gyro != null) {
+            //if (true) {
+                MAVLinkMessage msg_flow = new MAVLinkMessage(schema, "HIL_OPTICAL_FLOW", sysId, componentId, protocolVersion);
+                msg_flow.set("time_usec", tu);
+                msg_flow.set("sensor_id", 0);
+                msg_flow.set("integration_time_us", flowData.integration_time);
+                msg_flow.set("integrated_x", flowData.integrated_flow.x);
+                msg_flow.set("integrated_y", flowData.integrated_flow.y);
+                msg_flow.set("integrated_xgyro", flowData.integrated_gyro.x);
+                msg_flow.set("integrated_ygyro", flowData.integrated_gyro.y);
+                msg_flow.set("integrated_zgyro", flowData.integrated_gyro.z);
+                msg_flow.set("temperature", 50);
+                msg_flow.set("quality", flowData.quality);
+                msg_flow.set("time_delta_distance_us", flowData.integration_time);
+                msg_flow.set("distance", flowData.distance);
+                sendMessage(msg_flow);
+            }
+        }
     }
 
 }
