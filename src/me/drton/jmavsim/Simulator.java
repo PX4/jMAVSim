@@ -117,7 +117,22 @@ public class Simulator implements Runnable {
 
         // Create world
         world = new World();
-        LatLonAlt referencePos = DEFAULT_ORIGIN_POS;
+
+        // Initialize the GPS origin - it can be overridden via env variables
+        double latRef = DEFAULT_ORIGIN_POS.lat;
+        double lonRef = DEFAULT_ORIGIN_POS.lon;
+        double altRef = DEFAULT_ORIGIN_POS.alt;
+        String latOverride = System.getenv("PX4_HOME_LAT");
+        String lonOverride = System.getenv("PX4_HOME_LON");
+        if (latOverride != null && lonOverride != null) {
+            latRef = Double.parseDouble(latOverride);
+            lonRef = Double.parseDouble(lonOverride);
+        }
+        String altOverride = System.getenv("PX4_HOME_ALT");
+        if (altOverride != null) {
+            altRef = Double.parseDouble(altOverride);
+        }
+        LatLonAlt referencePos = new LatLonAlt(latRef, lonRef, altRef);
         world.setGlobalReference(referencePos);
 
         // Create environment
