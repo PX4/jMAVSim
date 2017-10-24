@@ -3,6 +3,8 @@
 
 Simple multirotor simulator with MAVLink protocol support
 
+![screenshot](art/screenshot.png)
+
 ### Installation ###
 
 Requirements:
