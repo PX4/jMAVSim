@@ -36,11 +36,17 @@ public class Visualizer3D extends JFrame {
     public static final double PI_2 = Math.PI / 2d;
     
     public static final String    TEX_DIR = "environment/";  // folder for all environment textures
-    public static final String    SKY_TEXTURE = "earth3.jpg";
-    public static final String    GND_TEXTURE = "ground.jpg";
+
+    public static final String    SKY_TEXTURE = "HDR_040_Field_Bg.jpg";
+    //public static final String    SKY_TEXTURE = "HDR_111_Parking_Lot_2_Bg.jpg";
+    // the following has a lower resolution and reduces memory usage
+    //public static final String    SKY_TEXTURE = "earth3.jpg";
+
+    public static final String    GND_TEXTURE = "grass3.jpg";
+    //public static final String    GND_TEXTURE = "ground.jpg";
     public static final String    COMPASS_IMG = "compass_rose.png";  // for overlay HUD
     public static final Dimension WINDOW_SIZE = new Dimension(1024, 768);  // default application window size
-    public static final float     WORLD_SIZE = 50000.0f;  // [m] size of world sphere
+    public static final float     WORLD_SIZE = 5000.0f;  // [m] size of world sphere
     public static final boolean   AA_ENABLED = true;  // default antialising for 3D scene
     public static final ViewTypes VIEW_TYPE  = ViewTypes.VIEW_STATIC;  // default view type
     public static final ZoomModes ZOOM_MODE  = ZoomModes.ZOOM_DYNAMIC;  // default zoom type
@@ -180,10 +186,13 @@ public class Visualizer3D extends JFrame {
         tex = loadTexture(TEX_DIR + SKY_TEXTURE);
         skySphere.getAppearance().setTexture(tex);
         trans = new Transform3D();
-        trans.setRotation(rot);
+        Matrix3d rotSky = new Matrix3d();
+        rotSky.rotZ(-120d*Math.PI/180d);
+        rotSky.mul(rot);
+        trans.setRotation(rotSky);
         tg = new TransformGroup(trans);
         tg.addChild(skySphere);
-        
+
         // Background (sky)
         Background bg = new Background();
         bg.setApplicationBounds(sceneBounds);
@@ -236,7 +245,7 @@ public class Visualizer3D extends JFrame {
 
         tex = loadTexture(TEX_DIR + GND_TEXTURE);
         if (tex != null)
-            tiles = (int)(WORLD_SIZE / tex.getWidth()) * 10;
+            tiles = (int)(WORLD_SIZE / tex.getWidth()) * 800;
 
         QuadArray plane = new QuadArray(4,  GeometryArray.COORDINATES | GeometryArray.TEXTURE_COORDINATE_2 );
         plane.setCoordinate(0, new Point3d(-side, side, dZ));
