@@ -299,11 +299,14 @@ public class Visualizer3D extends JFrame {
 
     // load image from file as a texture
     private Texture2D loadTexture(String fn) {
+        System.gc(); // cleanup memory before loading the texture
         TextureLoader texLoader = null;
         Texture2D texture = new Texture2D();
         texture.setEnable(false);
         try {
              texLoader = new TextureLoader(fn, null);
+             // enable Mipmapping (increases memory usage considerably)
+             //texLoader = new TextureLoader(fn, TextureLoader.GENERATE_MIPMAP, null);
         }  catch (ImageException e) {
             System.out.println("Error, could not load texture: " + fn);
             System.out.println("Error message:" + e.getLocalizedMessage());
@@ -313,6 +316,11 @@ public class Visualizer3D extends JFrame {
             if (texture == null)
                 System.out.println("Cannot load texture from " + fn);
             else {
+                //System.out.println( "\t\tNumber Of MIPMAPS->" + texture.numMipMapLevels() );
+                texture.setMinFilter(Texture.NICEST);
+                texture.setMagFilter(Texture.NICEST);
+                texture.setAnisotropicFilterMode(texture.ANISOTROPIC_SINGLE_VALUE);
+                texture.setAnisotropicFilterDegree(4.f);
                 //System.out.println("Loaded texture from " + fn);
                 texture.setEnable(true);
             }
