@@ -37,6 +37,10 @@ public class ReportUpdater extends WorldObject {
             return;
 
         nextUpdateT = t + updateFreq;
+
+        if (!visualizer.showReportText())
+            return;
+
         builder.setLength(0);
 
         for (WorldObject object : getWorld().getObjects()) {

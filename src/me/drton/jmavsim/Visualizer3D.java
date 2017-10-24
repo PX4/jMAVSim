@@ -396,8 +396,15 @@ public class Visualizer3D extends JFrame {
      * @param text
      */
     public void setReportText(String text) {
-    	if (reportPanel.isShowing() && !reportPaused)
-    	    reportPanel.setText(text);
+        if (showReportText())
+            reportPanel.setText(text);
+    }
+
+    /**
+     * Check whether to show the report text
+     */
+    public boolean showReportText() {
+        return reportPanel.isShowing() && !reportPaused;
     }
 
     /**
