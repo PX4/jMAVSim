@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Enumeration;
+import java.util.Map;
 
 /**
  * 3D Visualizer, works in own thread, synchronized with "world" thread.
@@ -40,7 +41,7 @@ public class Visualizer3D extends JFrame {
     public static final String    SKY_TEXTURE = "HDR_040_Field_Bg.jpg";
     //public static final String    SKY_TEXTURE = "HDR_111_Parking_Lot_2_Bg.jpg";
     // the following has a lower resolution and reduces memory usage
-    //public static final String    SKY_TEXTURE = "earth3.jpg";
+    public static final String    SKY_TEXTURE_LOW_RES = "earth3.jpg";
 
     public static final String    GND_TEXTURE = "grass3.jpg";
     //public static final String    GND_TEXTURE = "ground.jpg";
@@ -183,7 +184,15 @@ public class Visualizer3D extends JFrame {
         
         // Sky
         Sphere skySphere = new Sphere(1.0f, Sphere.GENERATE_NORMALS_INWARD | Sphere.GENERATE_TEXTURE_COORDS, 36);
-        tex = loadTexture(TEX_DIR + SKY_TEXTURE);
+        Map propMap = canvas.queryProperties();
+        String driverVendor = (String) propMap.get("native.vendor");
+        // The VMware graphics driver has a bug, where the large sky texture just shows up white,
+        // without any other errors. The reported maximum texture size is not useful either, it's 16384.
+        if (driverVendor == "VMware, Inc.") {
+            tex = loadTexture(TEX_DIR + SKY_TEXTURE_LOW_RES);
+        } else {
+            tex = loadTexture(TEX_DIR + SKY_TEXTURE);
+        }
         skySphere.getAppearance().setTexture(tex);
         trans = new Transform3D();
         Matrix3d rotSky = new Matrix3d();
