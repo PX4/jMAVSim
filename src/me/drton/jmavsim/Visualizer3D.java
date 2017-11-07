@@ -188,7 +188,7 @@ public class Visualizer3D extends JFrame {
         String driverVendor = (String) propMap.get("native.vendor");
         // The VMware graphics driver has a bug, where the large sky texture just shows up white,
         // without any other errors. The reported maximum texture size is not useful either, it's 16384.
-        if (driverVendor == "VMware, Inc.") {
+        if (driverVendor.equals("VMware, Inc.")) {
             tex = loadTexture(TEX_DIR + SKY_TEXTURE_LOW_RES);
         } else {
             tex = loadTexture(TEX_DIR + SKY_TEXTURE);
