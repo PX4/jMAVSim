@@ -107,13 +107,13 @@
                     <description>Octorotor</description>
                </entry>
                <entry value="15" name="MAV_TYPE_TRICOPTER">
-                    <description>Octorotor</description>
+                    <description>Tricopter</description>
                </entry>
                <entry value="16" name="MAV_TYPE_FLAPPING_WING">
                     <description>Flapping wing</description>
                </entry>
                <entry value="17" name="MAV_TYPE_KITE">
-                    <description>Flapping wing</description>
+                    <description>Kite</description>
                </entry>
                <entry value="18" name="MAV_TYPE_ONBOARD_CONTROLLER">
                     <description>Onboard companion controller</description>
@@ -169,7 +169,7 @@
           <enum name="MAV_MODE_FLAG">
                 <description>These flags encode the MAV mode.</description>
                 <entry value="128" name="MAV_MODE_FLAG_SAFETY_ARMED">
-                     <description>0b10000000 MAV safety set to armed. Motors are enabled / running / can start. Ready to fly.</description>
+                     <description>0b10000000 MAV safety set to armed. Motors are enabled / running / can start. Ready to fly. Additional note: this flag is to be ignore when sent in the command MAV_CMD_DO_SET_MODE and MAV_CMD_COMPONENT_ARM_DISARM shall be used instead. The flag can still be used to report the armed state.</description>
                 </entry>
                 <entry value="64" name="MAV_MODE_FLAG_MANUAL_INPUT_ENABLED">
                      <description>0b01000000 remote control input is enabled.</description>
@@ -1145,6 +1145,18 @@
                    <param index="7">Empty</param>
                </entry>
 
+               <entry name="MAV_CMD_DO_SET_POSITION_YAW_THRUST" value="213">
+                    <description>Sets a desired vehicle turn angle and thrust change</description>
+                    <param index="1">yaw angle to adjust steering by in centidegress</param>
+                    <param index="2">Thrust - normalized to -2 .. 2</param>
+                    <param index="3">Empty</param>
+                    <param index="4">Empty</param>
+                    <param index="5">Empty</param>
+                    <param index="6">Empty</param>
+                    <param index="7">Empty</param>
+               </entry>
+
+
               <entry value="220" name="MAV_CMD_DO_MOUNT_CONTROL_QUAT">
                 <description>Mission command to control a camera or antenna mount, using a quaternion as reference.</description>
                 <param index="1">q1 - quaternion param #1, w (1 in null-rotation)</param>
@@ -1189,7 +1201,7 @@
                  <param index="6">Empty</param>
                  <param index="7">Empty</param>
                </entry>
-               
+
                <entry value="240" name="MAV_CMD_DO_LAST">
                     <description>NOP - This command is only used to mark the upper limit of the DO commands in the enumeration</description>
                     <param index="1">Empty</param>
@@ -1310,7 +1322,7 @@
                   <param index="1">Reserved</param>
                   <param index="2">Reserved</param>
               </entry>
-              
+
               <entry name="MAV_CMD_DO_TRIGGER_CONTROL" value="2003">
                    <description>Enable or disable on-board camera triggering system.</description>
                    <param index="1">Trigger enable/disable (0 for disable, 1 for start)</param>
@@ -1329,6 +1341,38 @@
                   <description>Stop the current video capture</description>
                   <param index="1">Reserved</param>
                   <param index="2">Reserved</param>
+              </entry>
+
+              <entry value="2510" name="MAV_CMD_LOGGING_START">
+                   <description>Request to start streaming logging data over MAVLink (see also LOGGING_DATA message)</description>
+                   <param index="1">Format: 0: ULog</param>
+                   <param index="2">Reserved (set to 0)</param>
+                   <param index="3">Reserved (set to 0)</param>
+                   <param index="4">Reserved (set to 0)</param>
+                   <param index="5">Reserved (set to 0)</param>
+                   <param index="6">Reserved (set to 0)</param>
+                   <param index="7">Reserved (set to 0)</param>
+              </entry>
+              <entry value="2511" name="MAV_CMD_LOGGING_STOP">
+                   <description>Request to stop streaming log data over MAVLink</description>
+                   <param index="1">Reserved (set to 0)</param>
+                   <param index="2">Reserved (set to 0)</param>
+                   <param index="3">Reserved (set to 0)</param>
+                   <param index="4">Reserved (set to 0)</param>
+                   <param index="5">Reserved (set to 0)</param>
+                   <param index="6">Reserved (set to 0)</param>
+                   <param index="7">Reserved (set to 0)</param>
+              </entry>
+
+              <entry value="2520" name="MAV_CMD_AIRFRAME_CONFIGURATION">
+                  <description></description>
+                  <param index="1">Landing gear ID (default: 0, -1 for all)</param>
+                  <param index="2">Landing gear position (Down: 0, Up: 1, NAN for no change)</param>
+                  <param index="3">Reserved, set to NAN</param>
+                  <param index="4">Reserved, set to NAN</param>
+                  <param index="5">Reserved, set to NAN</param>
+                  <param index="6">Reserved, set to NAN</param>
+                  <param index="7">Reserved, set to NAN</param>
               </entry>
 
               <entry value="2800" name="MAV_CMD_PANORAMA_CREATE">
@@ -1384,7 +1428,7 @@
                   <param index="7">Reserved</param>
               </entry>
               <!-- END of payload range (30000 to 30999) -->
-              
+
               <!-- BEGIN user defined range (31000 to 31999) -->
               <entry value="31000" name="MAV_CMD_WAYPOINT_USER_1">
                   <description>User defined waypoint item. Ground Station will show the Vehicle as flying through this item.</description>
@@ -1894,10 +1938,10 @@
               </entry>
               <entry value="25" name="MAV_SENSOR_ROTATION_PITCH_270">
                 <description>Roll: 0, Pitch: 270, Yaw: 0</description>
-              </entry>   
+              </entry>
               <entry value="26" name="MAV_SENSOR_ROTATION_PITCH_180_YAW_90">
                 <description>Roll: 0, Pitch: 180, Yaw: 90</description>
-              </entry>  
+              </entry>
               <entry value="27" name="MAV_SENSOR_ROTATION_PITCH_180_YAW_270">
                   <description>Roll: 0, Pitch: 180, Yaw: 270</description>
               </entry>
@@ -2247,6 +2291,33 @@
                   <description>ID field references MAVLink SRC ID</description>
               </entry>
           </enum>
+          <enum name="GPS_FIX_TYPE">
+              <description>Type of GPS fix</description>
+              <entry value="0" name="GPS_FIX_TYPE_NO_GPS">
+                  <description>No GPS connected</description>
+              </entry>
+              <entry value="1" name="GPS_FIX_TYPE_NO_FIX">
+                  <description>No position information, GPS is connected</description>
+              </entry>
+              <entry value="2" name="GPS_FIX_TYPE_2D_FIX">
+                  <description>2D position</description>
+              </entry>
+              <entry value="3" name="GPS_FIX_TYPE_3D_FIX">
+                  <description>3D position</description>
+              </entry>
+              <entry value="4" name="GPS_FIX_TYPE_DGPS">
+                  <description>DGPS/SBAS aided 3D position</description>
+              </entry>
+              <entry value="5" name="GPS_FIX_TYPE_RTK_FLOAT">
+                  <description>RTK float, 3D position</description>
+              </entry>
+              <entry value="6" name="GPS_FIX_TYPE_RTK_FIXED">
+                  <description>RTK Fixed, 3D position</description>
+              </entry>
+              <entry value="7" name="GPS_FIX_TYPE_STATIC">
+                  <description>Static fixed, typically used for base stations</description>
+              </entry>
+          </enum>
      </enums>
      <messages>
           <message id="0" name="HEARTBEAT">
@@ -2343,7 +2414,7 @@
                <description>The global position, as returned by the Global Positioning System (GPS). This is
                 NOT the global position estimate of the system, but rather a RAW sensor value. See message GLOBAL_POSITION for the global position estimate. Coordinate frame is right-handed, Z-axis up (GPS frame).</description>
                <field type="uint64_t" name="time_usec">Timestamp (microseconds since UNIX epoch or microseconds since system boot)</field>
-               <field type="uint8_t" name="fix_type">0-1: no fix, 2: 2D fix, 3: 3D fix, 4: DGPS, 5: RTK. Some applications will not use the value of this field unless it is at least two, so always correctly fill in the fix.</field>
+               <field type="uint8_t" name="fix_type" enum="GPS_FIX_TYPE">See the GPS_FIX_TYPE enum.</field>
                <field type="int32_t" name="lat">Latitude (WGS84), in degrees * 1E7</field>
                <field type="int32_t" name="lon">Longitude (WGS84), in degrees * 1E7</field>
                <field type="int32_t" name="alt">Altitude (AMSL, NOT WGS84), in meters * 1000 (positive for up). Note that virtually all GPS modules provide the AMSL altitude in addition to the WGS84 altitude.</field>
@@ -3229,7 +3300,7 @@
          <message id="124" name="GPS2_RAW">
            <description>Second GPS data. Coordinate frame is right-handed, Z-axis up (GPS frame).</description>
            <field type="uint64_t" name="time_usec">Timestamp (microseconds since UNIX epoch or microseconds since system boot)</field>
-           <field type="uint8_t" name="fix_type">0-1: no fix, 2: 2D fix, 3: 3D fix, 4: DGPS fix, 5: RTK Fix. Some applications will not use the value of this field unless it is at least two, so always correctly fill in the fix.</field>
+           <field type="uint8_t" name="fix_type" enum="GPS_FIX_TYPE">See the GPS_FIX_TYPE enum.</field>
            <field type="int32_t" name="lat">Latitude (WGS84), in degrees * 1E7</field>
            <field type="int32_t" name="lon">Longitude (WGS84), in degrees * 1E7</field>
            <field type="int32_t" name="alt">Altitude (AMSL, not WGS84), in meters * 1000 (positive for up)</field>
@@ -3531,6 +3602,37 @@
            <field type="uint8_t" name="len">data length</field>
            <field type="uint8_t[180]" name="data">RTCM message (may be fragmented)</field>
         </message>
+        <message id="234" name="HIGH_LATENCY">
+            <description>Message appropriate for high latency connections like Iridium</description>
+            <field name="time_usec" type="uint64_t">Timestamp (microseconds since UNIX epoch)</field>
+            <field name="base_mode" type="uint8_t">System mode bitfield, see MAV_MODE_FLAG ENUM in mavlink/include/mavlink_types.h</field>
+            <field name="custom_mode" type="uint32_t">A bitfield for use for autopilot-specific flags.</field>
+            <field name="landed_state" type="uint8_t" enum="MAV_LANDED_STATE">The landed state. Is set to MAV_LANDED_STATE_UNDEFINED if landed state is unknown.</field>
+            <field name="roll" type="int16_t">roll (centidegrees)</field>
+            <field name="pitch" type="int16_t">pitch (centidegrees)</field>
+            <field name="heading" type="uint16_t">heading (centidegrees)</field>
+            <field name="throttle" type="int8_t">throttle (percentage)</field>
+            <field name="roll_sp" type="int16_t">roll setpoint (centidegrees)</field>
+            <field name="pitch_sp" type="int16_t">pitch setpoint (centidegrees)</field>
+            <field name="heading_sp" type="int16_t">heading setpoint (centidegrees)</field>
+            <field name="latitude" type="int32_t">Latitude, expressed as degrees * 1E7</field>
+            <field name="longitude" type="int32_t">Longitude, expressed as degrees * 1E7</field>
+            <field name="altitude_home" type="int16_t">Altitude above the home position (meters)</field>
+            <field name="altitude_amsl" type="int16_t">Altitude above mean sea level (meters)</field>
+            <field name="altitude_sp" type="int16_t">Altitude setpoint relative to the home position (meters)</field>
+            <field name="airspeed" type="uint8_t">airspeed (m/s)</field>
+            <field name="airspeed_sp" type="uint8_t">airspeed setpoint (m/s)</field>
+            <field name="groundspeed" type="uint8_t">groundspeed (m/s)</field>
+            <field name="climb_rate" type="int8_t">climb rate (m/s)</field>
+            <field name="gps_nsat" type="uint8_t">Number of satellites visible. If unknown, set to 255</field>
+            <field name="gps_fix_type" type="uint8_t">See the GPS_FIX_TYPE enum.</field>
+            <field name="battery_remaining" type="uint8_t">Remaining battery (percentage)</field>
+            <field name="temperature" type="int8_t">Autopilot temperature (degrees C)</field>
+            <field name="temperature_air" type="int8_t">Air temperature (degrees C) from airspeed sensor</field>
+            <field name="failsafe" type="uint8_t">failsafe (each bit represents a failsafe where 0=ok, 1=failsafe active (bit0:RC, bit1:batt, bit2:GPS, bit3:GCS, bit4:fence)</field>
+            <field name="wp_num" type="uint8_t">current waypoint number</field>
+            <field name="wp_distance" type="uint16_t">distance to target (meters)</field>
+        </message>
         <message id="241" name="VIBRATION">
             <description>Vibration levels and accelerometer clipping</description>
             <field type="uint64_t" name="time_usec">Timestamp (micros since boot or Unix epoch)</field>
@@ -3649,6 +3751,54 @@
                <field type="uint8_t" name="ind">index of debug variable</field>
                <field type="float" name="value">DEBUG value</field>
           </message>
-          
+
+          <!-- messages with ID 256 and above are only available in MAVLink2 -->
+          <message id="256" name="SETUP_SIGNING">
+               <description>Setup a MAVLink2 signing key. If called with secret_key of all zero and zero initial_timestamp will disable signing</description>
+               <field type="uint8_t" name="target_system">system id of the target</field>
+               <field type="uint8_t" name="target_component">component ID of the target</field>
+               <field type="uint8_t[32]" name="secret_key">signing key</field>
+               <field type="uint64_t" name="initial_timestamp">initial timestamp</field>
+          </message>
+
+	  <message id="257" name="BUTTON_CHANGE">
+            <description>Report button state change</description>
+            <field type="uint32_t" name="time_boot_ms">Timestamp (milliseconds since system boot)</field>
+            <field name="last_change_ms" type="uint32_t">Time of last change of button state</field>
+            <field name="state" type="uint8_t">Bitmap state of buttons</field>
+          </message>
+
+          <message id="258" name="PLAY_TUNE">
+            <description>Control vehicle tone generation (buzzer)</description>
+            <field name="target_system" type="uint8_t">System ID</field>
+            <field name="target_component" type="uint8_t">Component ID</field>
+            <field name="tune" type="char[30]">tune in board specific format</field>
+          </message>
+
+          <message id="266" name="LOGGING_DATA">
+               <description>A message containing logged data (see also MAV_CMD_LOGGING_START)</description>
+               <field type="uint8_t" name="target_system">system ID of the target</field>
+               <field type="uint8_t" name="target_component">component ID of the target</field>
+               <field type="uint16_t" name="sequence">sequence number (can wrap)</field>
+               <field type="uint8_t" name="length">data length</field>
+               <field type="uint8_t" name="first_message_offset">offset into data where first message starts. This can be used for recovery, when a previous message got lost (set to 255 if no start exists).</field>
+               <field type="uint8_t[249]" name="data">logged data</field>
+          </message>
+          <message id="267" name="LOGGING_DATA_ACKED">
+               <description>A message containing logged data which requires a LOGGING_ACK to be sent back</description>
+               <field type="uint8_t" name="target_system">system ID of the target</field>
+               <field type="uint8_t" name="target_component">component ID of the target</field>
+               <field type="uint16_t" name="sequence">sequence number (can wrap)</field>
+               <field type="uint8_t" name="length">data length</field>
+               <field type="uint8_t" name="first_message_offset">offset into data where first message starts. This can be used for recovery, when a previous message got lost (set to 255 if no start exists).</field>
+               <field type="uint8_t[249]" name="data">logged data</field>
+          </message>
+          <message id="268" name="LOGGING_ACK">
+               <description>An ack for a LOGGING_DATA_ACKED message</description>
+               <field type="uint8_t" name="target_system">system ID of the target</field>
+               <field type="uint8_t" name="target_component">component ID of the target</field>
+               <field type="uint16_t" name="sequence">sequence number (must match the one in LOGGING_DATA_ACKED)</field>
+          </message>
+
         </messages>
 </mavlink>
