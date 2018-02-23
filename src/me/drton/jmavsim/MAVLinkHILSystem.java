@@ -10,6 +10,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.TimeZone;
 
 /**
  * MAVLinkHILSystem is MAVLink bridge between AbstractVehicle and autopilot connected via MAVLink.
@@ -26,6 +28,7 @@ public class MAVLinkHILSystem extends MAVLinkSystem {
         false; //prefer HIL_ACTUATOR_CONTROLS in case we get both messages
     private long hilStateUpdateInterval = -1; //don't publish by default
     private long nextHilStatePub = 0;
+    private long timeThrottleCounter = 0;
 
     /**
      * Create MAVLinkHILSimulator, MAVLink system that sends simulated sensors to autopilot and passes controls from
@@ -244,6 +247,16 @@ public class MAVLinkHILSystem extends MAVLinkSystem {
                 msg_gps.set("satellites_visible", 10);
                 sendMessage(msg_gps);
             }
+        }
+
+        // SYSTEM TIME from host
+        if (timeThrottleCounter++ % 1000 == 0) {
+            System.out.println("Sending time");
+            MAVLinkMessage msg_system_time = new MAVLinkMessage(schema, "SYSTEM_TIME", sysId, componentId, protocolVersion);
+            Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+            msg_system_time.set("time_unix_usec", cal.getTimeInMillis() * 1000);
+            msg_system_time.set("time_boot_ms", tu/1000);
+            sendMessage(msg_system_time);
         }
     }
 
