@@ -11,7 +11,7 @@ public class SimpleEnvironment extends Environment {
     public static final double Pb = 101325.0;  // static pressure at sea level [Pa]
     public static final double Tb = 288.15;    // standard temperature at sea level [K]
     public static final double Lb = -0.0065;   // standard temperature lapse rate [K/m]
-    public static final double M = 0.0289644;  // molar mass of Earth’s air [kg/mol]
+    public static final double M = 0.0289644;  // molar mass of Earth's air [kg/mol]
     public static final double G = 9.80665;    // gravity
     public static final double R = 8.31432;    // universal gas constant
 
