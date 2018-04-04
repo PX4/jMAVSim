@@ -262,7 +262,6 @@ public class MAVLinkHILSystem extends MAVLinkSystem {
         if (sensors.isFlowUpdated()) {
             FlowData flowData = sensors.getFlowData();
             if (flowData != null && flowData.integrated_flow != null && flowData.integrated_gyro != null) {
-            //if (true) {
                 MAVLinkMessage msg_flow = new MAVLinkMessage(schema, "HIL_OPTICAL_FLOW", sysId, componentId, protocolVersion);
                 msg_flow.set("time_usec", tu);
                 msg_flow.set("sensor_id", 0);
