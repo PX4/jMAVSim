@@ -272,7 +272,7 @@ public class MAVLinkHILSystem extends MAVLinkSystem {
                 msg_flow.set("integrated_xgyro", flowData.integrated_gyro.x);
                 msg_flow.set("integrated_ygyro", flowData.integrated_gyro.y);
                 msg_flow.set("integrated_zgyro", flowData.integrated_gyro.z);
-                msg_flow.set("temperature", 50);
+                msg_flow.set("temperature", 2000);
                 msg_flow.set("quality", flowData.quality);
                 msg_flow.set("time_delta_distance_us", flowData.integration_time);
                 msg_flow.set("distance", flowData.distance);
