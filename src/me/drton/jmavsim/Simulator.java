@@ -181,7 +181,6 @@ public class Simulator implements Runnable {
             connCommon.addSkipMessage(schema.getMessageDefinition("HIL_ACTUATOR_CONTROLS").id);
             connCommon.addSkipMessage(schema.getMessageDefinition("HIL_SENSOR").id);
             connCommon.addSkipMessage(schema.getMessageDefinition("HIL_GPS").id);
-            connCommon.addSkipMessage(schema.getMessageDefinition("HIL_STATE_QUATERNION").id);
         }
         world.addObject(connCommon);
 
