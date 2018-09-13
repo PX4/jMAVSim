@@ -91,14 +91,6 @@ public class MAVLinkHILSystem extends MAVLinkSystem {
 
             vehicle.setControl(control);
 
-        } else if ("COMMAND_LONG".equals(msg.getMsgName())) {
-            int command = msg.getInt("command");
-            if (command == 511) { //MAV_CMD_SET_MESSAGE_INTERVAL
-                int msg_id = (int)(msg.getFloat("param1") + 0.5);
-                if (msg_id == 115) { //HIL_STATE_QUATERNION
-                    hilStateUpdateInterval = (int)(msg.getFloat("param2") + 0.5);
-                }
-            }
         } else if ("HEARTBEAT".equals(msg.getMsgName())) {
             if (!gotHeartBeat && !stopped) {
                 if (sysId < 0 || sysId == msg.systemID) {
@@ -187,45 +179,6 @@ public class MAVLinkHILSystem extends MAVLinkSystem {
             sensors.setReset(false);
         }
         sendMessage(msg_sensor);
-
-        /* ground truth */
-        if (hilStateUpdateInterval != -1 && nextHilStatePub <= tu) {
-            MAVLinkMessage msg_hil_state = new MAVLinkMessage(schema, "HIL_STATE_QUATERNION", sysId,
-                                                              componentId, protocolVersion);
-            msg_hil_state.set("time_usec", tu);
-
-            Float[] q = RotationConversion.quaternionByEulerAngles(vehicle.attitude);
-            msg_hil_state.set("attitude_quaternion", q);
-
-            Vector3d v3d = vehicle.getRotationRate();
-            msg_hil_state.set("rollspeed", (float) v3d.x);
-            msg_hil_state.set("pitchspeed", (float) v3d.y);
-            msg_hil_state.set("yawspeed", (float) v3d.z);
-
-            int alt = (int)(1000 * vehicle.position.z);
-            msg_hil_state.set("alt", alt);
-            msg_hil_state.set("lat", (int)(sensors.getGlobalPosition().lat * 1.e7));
-            msg_hil_state.set("lon", (int)(sensors.getGlobalPosition().lon * 1.e7));
-
-            v3d = vehicle.getVelocity();
-            msg_hil_state.set("vx", (int)(v3d.x * 100));
-            msg_hil_state.set("vy", (int)(v3d.y * 100));
-            msg_hil_state.set("vz", (int)(v3d.z * 100));
-
-            Vector3d airSpeed = new Vector3d(vehicle.getVelocity());
-            airSpeed.scale(-1.0);
-            airSpeed.add(vehicle.getWorld().getEnvironment().getCurrentWind(vehicle.position));
-            float as_mag = (float) airSpeed.length();
-            msg_hil_state.set("true_airspeed", (int)(as_mag * 100));
-
-            v3d = vehicle.acceleration;
-            msg_hil_state.set("xacc", (int)(v3d.x * 1000));
-            msg_hil_state.set("yacc", (int)(v3d.y * 1000));
-            msg_hil_state.set("zacc", (int)(v3d.z * 1000));
-
-            sendMessage(msg_hil_state);
-            nextHilStatePub = tu + hilStateUpdateInterval;
-        }
 
         // GPS
         if (sensors.isGPSUpdated()) {
