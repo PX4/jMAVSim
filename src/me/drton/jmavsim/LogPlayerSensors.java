@@ -87,6 +87,21 @@ public class LogPlayerSensors implements Sensors {
     }
 
     @Override
+    public double getSonarDist() {
+        return 0; // TODO: implement me
+    }
+
+    @Override
+    public FlowData getFlowData() {
+        return null; // TODO: implement me
+    }
+
+    @Override
+    public boolean isFlowUpdated() {
+        return false; // TODO: implement me
+    }
+
+    @Override
     public void update(long t) {
         if (logReader != null) {
             Map<String, Object> logData = new HashMap<String, Object>();

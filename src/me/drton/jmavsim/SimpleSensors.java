@@ -5,6 +5,7 @@ import me.drton.jmavlib.geo.LatLonAlt;
 import me.drton.jmavlib.processing.DelayLine;
 
 import javax.vecmath.Matrix3d;
+import javax.vecmath.Vector2d;
 import javax.vecmath.Vector3d;
 
 /**
@@ -20,6 +21,12 @@ public class SimpleSensors implements Sensors {
     private GNSSReport gps = new GNSSReport();
     private LatLonAlt globalPosition = new LatLonAlt(0, 0, 0);
     private boolean gpsUpdated = false;
+    private FlowData flowData = null;
+    private long flowInterval = 50;
+    private long flowLast = 0;
+    private boolean flowUpdated = false;
+    //private Matrix3d last_rotation
+
     private boolean reset = false;
     private double pressureAltOffset = 0.0;
     // default sensor output noise levels
@@ -27,6 +34,7 @@ public class SimpleSensors implements Sensors {
     private float noise_Gyo = 0.01f;
     private float noise_Mag = 0.005f;
     private float noise_Prs = 0.01f;
+    private float noise_Flw = 0.05f;
     private double magScale = 2.0;   // scaling factor for mag sensor
     private float ephHigh = 100.0f;  // starting GPS horizontal estimation accuracy
     private float ephLow = 0.3f;     // final GPS horizontal estimation accuracy
@@ -99,6 +107,10 @@ public class SimpleSensors implements Sensors {
         this.noise_Prs = noise_Prs;
     }
 
+    public void setNoise_Flw(float noise_Flw) {
+        this.noise_Flw = noise_Flw;
+    }
+
     public double getMagScale() {
         return magScale;
     }
@@ -152,6 +164,22 @@ public class SimpleSensors implements Sensors {
     }
 
     @Override
+    public double getSonarDist() {
+        double dist = getGroundDistance();
+        if (dist < 0.3) dist = 0.3;
+        else if (dist > 4.0) dist = 4.0;
+
+        return dist;
+    }
+
+    private double getGroundDistance()
+    {
+        double height = -object.getPosition().z;
+        Matrix3d rot = new Matrix3d(object.getRotation());
+        return height / rot.getM22();
+    }
+
+    @Override
     public GNSSReport getGNSS() {
         return gps;
     }
@@ -201,6 +229,18 @@ public class SimpleSensors implements Sensors {
     }
 
     @Override
+    public boolean isFlowUpdated() {
+        boolean res = flowUpdated;
+        flowUpdated = false;
+        return res;
+    }
+
+    @Override
+    public FlowData getFlowData() {
+        return flowData;
+    }
+
+    @Override
     public void update(long t) {
         float eph, epv;
         setGlobalPosition(null);
@@ -221,6 +261,47 @@ public class SimpleSensors implements Sensors {
             gpsCurrent.time = System.currentTimeMillis() * 1000;
             gps = gpsDelayLine.getOutput(t, gpsCurrent);
         }
+
+        if (t > flowLast + flowInterval) {
+            flowUpdated = true;
+            flowData = new FlowData();
+
+            flowData.integration_time = (t - flowLast) * 1000;
+            flowLast = t;
+
+            flowData.distance = getSonarDist();
+            double ground_distance = getGroundDistance();
+
+            // Translational flow
+            Matrix3d rot = new Matrix3d(object.getRotation());
+            Vector3d flow3d = new Vector3d(object.getVelocity());
+            flow3d.scale(- 1 / ground_distance);
+            rot.transpose();
+            rot.transform(flow3d);
+
+            // Rotational flow
+            flow3d.x += object.getRotationRate().x;
+            flow3d.y += object.getRotationRate().y;
+
+            // Integrated flow
+            flow3d = addZeroMeanNoise(flow3d, noise_Flw);
+            flowData.integrated_flow = new Vector2d(flow3d.x, flow3d.y);
+            flowData.integrated_flow.scale(1e-6 * flowData.integration_time);
+
+            // Integrated gyro
+            flowData.integrated_gyro = new Vector3d(object.getRotationRate());
+            flowData.integrated_gyro = addZeroMeanNoise(flowData.integrated_gyro, noise_Gyo);
+            flowData.integrated_gyro.scale(1e-6 * flowData.integration_time);
+
+            if (ground_distance < 0.3 || ground_distance > 4.0)
+            {
+                flowData.quality = 200;
+            } else {
+                flowData.quality = 255;
+            }
+        }
+        else
+            flowUpdated = false;
     }
 
     @Override

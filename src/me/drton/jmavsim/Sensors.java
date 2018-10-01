@@ -20,11 +20,17 @@ public interface Sensors {
 
     double getPressure();
 
+    double getSonarDist();
+
     GNSSReport getGNSS();
 
     LatLonAlt getGlobalPosition();
 
     boolean isGPSUpdated();
+
+    FlowData getFlowData();
+
+    boolean isFlowUpdated();
 
     boolean isReset();
 
