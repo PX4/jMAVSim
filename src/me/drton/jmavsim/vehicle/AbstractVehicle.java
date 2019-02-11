@@ -24,7 +24,7 @@ public abstract class AbstractVehicle extends DynamicObject implements Reporting
     protected Sensors sensors = null;
     protected Peripherials peripherials = null;
 
-	public AbstractVehicle(World world, String modelName) {
+    public AbstractVehicle(World world, String modelName) {
         super(world);
         modelFromFile(modelName);
         resetObjectParameters();
@@ -122,12 +122,12 @@ public abstract class AbstractVehicle extends DynamicObject implements Reporting
      * @param peripherials
      */
     public void setPeripherials(Peripherials peripherials) {
-    	this.peripherials = peripherials;
-	}
+        this.peripherials = peripherials;
+    }
 
-	public Peripherials getPeripherials() {
-		return peripherials;
-	}
+    public Peripherials getPeripherials() {
+        return peripherials;
+    }
 
     /**
      * Set sensors object for the vehicle.

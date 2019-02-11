@@ -25,7 +25,7 @@ public class SimpleBuzzer implements Peripherial {
     AudioFormat af;
     SourceDataLine sdl;
     float sample_rate = 44100; // assume a sample rate of 44.1 kHz
-    
+
     class Note {
         public int frequency;
         public int duration;
@@ -81,17 +81,17 @@ public class SimpleBuzzer implements Peripherial {
 
         sdl.drain();
     }
-	
-	public void filterMessage(MAVLinkMessage msg) {
-		if("PLAY_TUNE".equals(msg.getMsgName())) {
-			
-			ByteBuffer bb = ByteBuffer.wrap((byte[]) msg.
-							get(new MAVLinkField(MAVLinkDataType.UINT8, 30, "tune"))).
-							order(ByteOrder.LITTLE_ENDIAN);
 
-			notes.add(new Note(bb.getInt(freqMavLinkOffsetInBytes), 
-					           bb.getInt(durationMavLinkOffsetInBytes)/1000, 
-					           bb.getInt(silenceMavLinkOffsetInBytes)/1000));
-		}
-	}
+    public void filterMessage(MAVLinkMessage msg) {
+        if("PLAY_TUNE".equals(msg.getMsgName())) {
+
+            ByteBuffer bb = ByteBuffer.wrap((byte[]) msg.
+                            get(new MAVLinkField(MAVLinkDataType.UINT8, 30, "tune"))).
+                            order(ByteOrder.LITTLE_ENDIAN);
+
+            notes.add(new Note(bb.getInt(freqMavLinkOffsetInBytes), 
+                               bb.getInt(durationMavLinkOffsetInBytes)/1000, 
+                               bb.getInt(silenceMavLinkOffsetInBytes)/1000));
+        }
+    }
 }
