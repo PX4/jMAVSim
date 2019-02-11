@@ -1,7 +1,9 @@
 package me.drton.jmavsim.vehicle;
 
 import me.drton.jmavlib.geo.LatLonAlt;
+import me.drton.jmavlib.mavlink.MAVLinkMessage;
 import me.drton.jmavsim.DynamicObject;
+import me.drton.jmavsim.Peripherials;
 import me.drton.jmavsim.ReportUtil;
 import me.drton.jmavsim.ReportingObject;
 import me.drton.jmavsim.Sensors;
@@ -21,8 +23,9 @@ import java.util.List;
 public abstract class AbstractVehicle extends DynamicObject implements ReportingObject {
     protected List<Double> control = Collections.emptyList();
     protected Sensors sensors = null;
+    protected Peripherials peripherials = null;
 
-    public AbstractVehicle(World world, String modelName) {
+	public AbstractVehicle(World world, String modelName) {
         super(world);
         modelFromFile(modelName);
         resetObjectParameters();
@@ -113,6 +116,19 @@ public abstract class AbstractVehicle extends DynamicObject implements Reporting
     public List<Double> getControl() {
         return control;
     }
+    
+    /**
+     * Set peripheral objects for the vehicle.
+     *
+     * @param peripherials
+     */
+    public void setPeripherials(Peripherials peripherials) {
+    	this.peripherials = peripherials;
+	}
+
+	public Peripherials getPeripherials() {
+		return peripherials;
+	}
 
     /**
      * Set sensors object for the vehicle.

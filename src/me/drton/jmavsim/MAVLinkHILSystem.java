@@ -145,6 +145,9 @@ public class MAVLinkHILSystem extends MAVLinkSystem {
         } else if ("STATUSTEXT".equals(msg.getMsgName())) {
             System.out.println("MSG: " + msg.getString("text"));
         }
+        
+        vehicle.getPeripherials().getBuzzer().filterMessage(msg);
+        
     }
 
     public void initMavLink() {

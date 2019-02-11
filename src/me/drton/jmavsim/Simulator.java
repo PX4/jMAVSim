@@ -385,6 +385,9 @@ public class Simulator implements Runnable {
         vehicle.setSensors(sensors, getSimMillis());
         //v.setDragRotate(0.1);
 
+        SimplePeripherals peripherals = new SimplePeripherals();
+        vehicle.setPeripherials(peripherals);
+        
         return vehicle;
     }
 
