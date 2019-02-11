@@ -1,7 +1,6 @@
 package me.drton.jmavsim.vehicle;
 
 import me.drton.jmavlib.geo.LatLonAlt;
-import me.drton.jmavlib.mavlink.MAVLinkMessage;
 import me.drton.jmavsim.DynamicObject;
 import me.drton.jmavsim.Peripherials;
 import me.drton.jmavsim.ReportUtil;
