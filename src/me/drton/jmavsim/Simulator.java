@@ -49,6 +49,7 @@ public class Simulator implements Runnable {
     public static boolean   GUI_ENABLE_AA         = true;   // anti-alias on 3D scene
     public static ViewTypes GUI_START_VIEW        = ViewTypes.VIEW_STATIC;
     public static ZoomModes GUI_START_ZOOM        = ZoomModes.ZOOM_DYNAMIC;
+    public static boolean LOCKSTEP_ENABLED = false;
     public static boolean   LOG_TO_STDOUT         =
         true;   // send System.out messages to stdout (console) as well as any custom handlers (see SystemOutHandler)
     public static boolean DEBUG_MODE = false;
@@ -309,8 +310,12 @@ public class Simulator implements Runnable {
             }
         }
 
-        thisHandle = executor.scheduleAtFixedRate(this, 0, (int)(sleepInterval / speedFactor / checkFactor),
-                                                  TimeUnit.MICROSECONDS);
+        if (LOCKSTEP_ENABLED) {
+            thisHandle = executor.scheduleAtFixedRate(this, 0, (int)(sleepInterval / speedFactor / checkFactor),
+                                                      TimeUnit.MICROSECONDS);
+        } else {
+            thisHandle = executor.scheduleAtFixedRate(this, 0, (int)(sleepInterval), TimeUnit.MICROSECONDS);
+        }
 
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
@@ -429,15 +434,25 @@ public class Simulator implements Runnable {
             return;
         }
 
-        boolean ioRunOnly = (slowDownCounter % checkFactor != 0);
+        boolean needsToPause = false;
+        long now;
 
-        if (!hilSystem.gotHilActuatorControls() && !ioRunOnly) {
-            advanceTime();
+        if (LOCKSTEP_ENABLED) {
+            // In lockstep we run every update with a checkFactor of (e.g. 2).
+            // This way every second update is just an IO (input/output) run where
+            // time is not increased.
+            boolean ioRunOnly = (slowDownCounter % checkFactor != 0);
+
+            if (!hilSystem.gotHilActuatorControls() && !ioRunOnly) {
+                advanceTime();
+            }
+
+            now = getSimMillis();
+
+            needsToPause = ((lastTimeRan == now) || ioRunOnly);
+        } else {
+            now = getSimMillis();
         }
-
-        long now = getSimMillis();
-
-        boolean needsToPause = ((lastTimeRan == now) || ioRunOnly);
 
         try {
             world.update(now, needsToPause);
@@ -513,10 +528,14 @@ public class Simulator implements Runnable {
     }
 
     public long getSimMillis() {
-        if (simTimeUs == 0) {
-            simTimeUs = System.currentTimeMillis() * 1000;
+        if (LOCKSTEP_ENABLED) {
+            if (simTimeUs == 0) {
+                simTimeUs = System.currentTimeMillis() * 1000;
+            }
+            return simTimeUs / 1000;
+        } else {
+            return System.currentTimeMillis();
         }
-        return simTimeUs / 1000;
     }
 
     public long getRealMillis() {
@@ -524,7 +543,10 @@ public class Simulator implements Runnable {
     }
 
     public void advanceTime() {
-        simTimeUs += sleepInterval;
+        if (LOCKSTEP_ENABLED) {
+            simTimeUs += sleepInterval;
+        }
+        // not needed without lockstep.
     }
 
     public final static String PRINT_INDICATION_STRING = "-m [<MsgID[, MsgID]...>]";
@@ -541,6 +563,7 @@ public class Simulator implements Runnable {
     public final static String AP_STRING = "-ap <autopilot_type>";
     public final static String RATE_STRING = "-r <Hz>";
     public final static String SPEED_FACTOR_STRING = "-f";
+    public final static String LOCKSTEP_STRING = "-lockstep";
     public final static String CMD_STRING =
         "java [-Xmx512m] -cp lib/*:out/production/jmavsim.jar me.drton.jmavsim.Simulator";
     public final static String CMD_STRING_JAR = "java [-Xmx512m] -jar jmavsim_run.jar";
@@ -775,6 +798,8 @@ public class Simulator implements Runnable {
                 USE_GIMBAL = true;
             } else if (arg.equals("-no-gimbal")) {
                 USE_GIMBAL = false;
+            } else if (arg.equals("-lockstep")) {
+                LOCKSTEP_ENABLED = true;
             } else if (arg.equals("-debug")) {
                 DEBUG_MODE = true;
             } else {
@@ -785,6 +810,12 @@ public class Simulator implements Runnable {
 
         if (i != args.length) {
             System.err.println("Usage: " + USAGE_STRING);
+            return;
+        }
+
+        if (speedFactor != DEFAULT_SPEED_FACTOR && !LOCKSTEP_ENABLED) {
+            System.err.println(SPEED_FACTOR_STRING + " requires lockstep to be enabled using: '" +
+                               LOCKSTEP_STRING + "'");
             return;
         }
 
@@ -811,6 +842,9 @@ public class Simulator implements Runnable {
         System.out.println(SPEED_FACTOR_STRING);
         System.out.println("      Speed factor at which jMAVSim runs. A factor of 2.0 means the system");
         System.out.println("      runs double than real time speed. Default is " + DEFAULT_SPEED_FACTOR);
+        System.out.println(LOCKSTEP_STRING);
+        System.out.println("      Set to enable Lockstep simulation (used with PX4 SITL),");
+        System.out.println("      required for speed factor '-f'.");
         System.out.println(AP_STRING);
         System.out.println("      Specify the MAV type. E.g. 'px4' or 'aq'. Default is: " + autopilotType +
                            "");
