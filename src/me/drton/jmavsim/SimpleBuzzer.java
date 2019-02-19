@@ -27,11 +27,15 @@ public class SimpleBuzzer implements Peripherial {
     float sample_rate = 44100; // assume a sample rate of 44.1 kHz
 
     class Note {
+    	
         public int frequency;
         public int duration;
+        public int silence;
+        
         public Note(int frequency, int duration, int silence) {
             this.frequency = Integer.valueOf(frequency);
             this.duration = duration;
+            this.silence = silence;            
         }
     }
 
@@ -40,7 +44,13 @@ public class SimpleBuzzer implements Peripherial {
             while (true) {
                 try {
                     Note timedNote = notes.take();
-                    generateTone(timedNote.frequency, timedNote.duration);
+                    if(timedNote.frequency > 0) {
+                        generateTone(timedNote.frequency, timedNote.duration);
+                    }
+                    if(timedNote.silence > 0) {
+                    	Thread.sleep(timedNote.silence);
+                    }
+                    
                 } catch (LineUnavailableException e) {
                     e.printStackTrace();
                 } catch (InterruptedException e) {
@@ -69,7 +79,7 @@ public class SimpleBuzzer implements Peripherial {
         byte[] buf = new byte[2048];
 
         int k = 0;
-
+        
         for (int i = 0; i < msecs * sample_rate / 1000;) {
             // fill up the local buffer
             for (k = 0; k < 2047 && (i < msecs * sample_rate / 1000); i++, k++) {
@@ -81,14 +91,14 @@ public class SimpleBuzzer implements Peripherial {
 
         sdl.drain();
     }
-
+	
     public void filterMessage(MAVLinkMessage msg) {
         if("PLAY_TUNE".equals(msg.getMsgName())) {
 
             ByteBuffer bb = ByteBuffer.wrap((byte[]) msg.
                             get(new MAVLinkField(MAVLinkDataType.UINT8, 30, "tune"))).
-                            order(ByteOrder.LITTLE_ENDIAN);
-
+                            order(ByteOrder.LITTLE_ENDIAN);                        
+            
             notes.add(new Note(bb.getInt(freqMavLinkOffsetInBytes), 
                                bb.getInt(durationMavLinkOffsetInBytes)/1000, 
                                bb.getInt(silenceMavLinkOffsetInBytes)/1000));
