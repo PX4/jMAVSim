@@ -28,6 +28,8 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Enumeration;
 import java.util.Map;
+import java.util.prefs.BackingStoreException;
+import java.util.prefs.Preferences;
 
 /**
  * 3D Visualizer, works in own thread, synchronized with "world" thread.
@@ -110,16 +112,53 @@ public class Visualizer3D extends JFrame {
         outputStream = msgOutputStream;
 //        outputStream = new BufferedOutputStream(msgOutputStream);
 
+        // load window position & size
         Dimension size = WINDOW_SIZE;
-        Rectangle sizeBounds = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
-        if (size.width > sizeBounds.width) {
-            size.width = sizeBounds.width;
+        Rectangle sizeBounds = getWindowBoundsAllScreens();
+        Preferences root = Preferences.userRoot();
+        final Preferences node = root.node("/me/drton/jmavsim");
+        int left = node.getInt("left", 0);
+        int top = node.getInt("top", 0);
+        size.width = node.getInt("width", size.width);
+        size.height = node.getInt("height", size.height);
+        addWindowListener( new WindowAdapter() {
+            private void saveState() {
+                // save window location
+                node.putInt("left", getX());
+                node.putInt("top", getY());
+                node.putInt("width", getWidth());
+                node.putInt("height", getHeight());
+                try {
+                    node.flush();
+                } catch (BackingStoreException e) {
+                    e.printStackTrace();
+                }
+            }
+            public void windowClosing(WindowEvent we) {
+                saveState();
+            }
+            public void windowLostFocus(WindowEvent e) {
+                // jmavsim might get killed via ctrl-c, so save state now
+                saveState();
+            }
+            public void windowDeactivated(WindowEvent e) {
+                // jmavsim might get killed via ctrl-c, so save state now
+                saveState();
+            }
+        });
+        // check bounds
+        size.width = Math.min(size.width, sizeBounds.width);
+        left = Math.max(left, sizeBounds.x);
+        if (left + size.width > sizeBounds.x + sizeBounds.width) {
+            left = sizeBounds.x + sizeBounds.width - size.width;
         }
-        if (size.height > sizeBounds.height) {
-            size.height = sizeBounds.height;
+        size.height = Math.min(size.height, sizeBounds.height);
+        top = Math.max(top, sizeBounds.y);
+        if (top + size.height > sizeBounds.y + sizeBounds.height) {
+            top = sizeBounds.y + sizeBounds.height - size.height;
         }
+        setBounds(left, top, size.width, size.height);
 
-        setSize(size);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setTitle("jMAVSim");
 
@@ -182,6 +221,20 @@ public class Visualizer3D extends JFrame {
         toggleReportPanel(false);
         resetView();
         canvas.requestFocus();
+    }
+
+    public Rectangle getWindowBoundsAllScreens() {
+        GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        Rectangle virtualBounds = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
+        GraphicsDevice[] gs = ge.getScreenDevices();
+        for (int j = 0; j < gs.length; j++) {
+            GraphicsDevice gd = gs[j];
+            GraphicsConfiguration[] gc = gd.getConfigurations();
+            for (int i = 0; i < gc.length; i++) {
+                virtualBounds = virtualBounds.union(gc[i].getBounds());
+            }
+        }
+        return virtualBounds;
     }
 
     public void addWorldModels() {
