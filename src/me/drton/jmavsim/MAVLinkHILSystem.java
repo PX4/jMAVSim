@@ -18,8 +18,8 @@ import java.util.TimeZone;
  * MAVLinkHILSystem should have the same sysID as the autopilot, but different componentId.
  */
 public class MAVLinkHILSystem extends MAVLinkSystem {
-    private Simulator simulator;
-    private AbstractVehicle vehicle;
+    protected Simulator simulator;
+    protected AbstractVehicle vehicle;
     private boolean gotHeartBeat = false;
     private boolean inited = false;
     private boolean stopped = false;

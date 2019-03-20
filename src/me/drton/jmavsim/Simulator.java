@@ -54,6 +54,7 @@ public class Simulator implements Runnable {
     public static boolean   LOG_TO_STDOUT         =
         true;   // send System.out messages to stdout (console) as well as any custom handlers (see SystemOutHandler)
     public static boolean DEBUG_MODE = false;
+    public static boolean DISPLAY_ONLY = false; // display HIL_STATE_QUATERNION from the autopilot, simulation engine disabled
 
     public static final int    DEFAULT_SIM_RATE = 250; // Hz
     public static final double    DEFAULT_SPEED_FACTOR = 1.0;
@@ -300,7 +301,14 @@ public class Simulator implements Runnable {
 
         // Create MAVLink HIL system
         // SysId should be the same as autopilot, ComponentId should be different!
-        hilSystem = new MAVLinkHILSystem(schema, autopilotSysId, 51, vehicle);
+        if (DISPLAY_ONLY){
+            // paused=true;
+            vehicle.setIgnoreGravity(true);
+            vehicle.setIgnoreWind(true);
+            hilSystem = new MAVLinkDisplayOnly(schema, autopilotSysId, 51, vehicle);
+        } else {
+            hilSystem = new MAVLinkHILSystem(schema, autopilotSysId, 51, vehicle);
+        }
         hilSystem.setSimulator(this);
         //hilSystem.setHeartbeatInterval(0);
         connHIL.addNode(hilSystem);
@@ -604,6 +612,7 @@ public class Simulator implements Runnable {
     public final static String RATE_STRING = "-r <Hz>";
     public final static String SPEED_FACTOR_STRING = "-f";
     public final static String LOCKSTEP_STRING = "-lockstep";
+    public final static String DISPLAY_ONLY_STRING = "-disponly";    
     public final static String CMD_STRING =
         "java [-Xmx512m] -cp lib/*:out/production/jmavsim.jar me.drton.jmavsim.Simulator";
     public final static String CMD_STRING_JAR = "java [-Xmx512m] -jar jmavsim_run.jar";
@@ -621,7 +630,8 @@ public class Simulator implements Runnable {
                                               GUI_MAX_STRING + "] [" +
                                               GUI_VIEW_STRING + "] [" +
                                               REP_STRING + "] [" +
-                                              PRINT_INDICATION_STRING + "]";
+                                              PRINT_INDICATION_STRING + "] [" +
+                                              DISPLAY_ONLY_STRING + "]";
 
     public static void main(String[] args)
     throws InterruptedException, IOException {
@@ -855,6 +865,8 @@ public class Simulator implements Runnable {
                     System.err.println("-view requires an argument: " + GUI_VIEW_STRING);
                     return;
                 }
+            } else if (arg.equals(DISPLAY_ONLY_STRING)) {
+                DISPLAY_ONLY = true;    // // display HIL_STATE_QUATERNION from the autopilot, simulation engine disabled
             } else if (arg.equals("-automag")) {
                 DO_MAG_FIELD_LOOKUP = true;
             } else if (arg.equals("-rep")) {
@@ -943,6 +955,9 @@ public class Simulator implements Runnable {
         System.out.println(PRINT_INDICATION_STRING);
         System.out.println("      Monitor (echo) all/selected MAVLink messages to the console.");
         System.out.println("      If no MsgIDs are specified, all messages are monitored.");
+        System.out.println(DISPLAY_ONLY_STRING);        
+        System.out.println("      Disable the simulation engine.");
+        System.out.println("      Display the autopilot states from HIL_STATE_QUATERNION.");
         System.out.println("");
         System.out.println("Key commands (in the visualizer window):");
         System.out.println("");
