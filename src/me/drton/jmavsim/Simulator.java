@@ -958,6 +958,7 @@ public class Simulator implements Runnable {
         System.out.println(DISPLAY_ONLY_STRING);        
         System.out.println("      Disable the simulation engine.");
         System.out.println("      Display the autopilot states from HIL_STATE_QUATERNION.");
+        System.out.println("      Compatible with simulation-in-hardware.");
         System.out.println("");
         System.out.println("Key commands (in the visualizer window):");
         System.out.println("");

@@ -10,13 +10,12 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.ArrayList;
-// import java.util.Calendar;
-// import java.util.TimeZone;
 
 /**
  * MAVLinkDisplayOnly is MAVLink bridge between AbstractVehicle and autopilot connected via MAVLink.
  * MAVLinkDisplayOnly should have the same sysID as the autopilot, but different componentId.
  * It reads HIL_STATE_QUATERNION from the MAVLink and displays the vehicle position and attitude.
+ * @author Romain Chiappinelli
  */
 public class MAVLinkDisplayOnly extends MAVLinkHILSystem {
 
@@ -32,7 +31,7 @@ public class MAVLinkDisplayOnly extends MAVLinkHILSystem {
     private static final double EARTH_RADIUS=6371000.0;    // earth radius in meters
 
     /**
-     * Create MAVLinkDisplayOnly, MAVLink system that sends simulated sensors to autopilot and passes controls from
+     * Create MAVLinkDisplayOnly, MAVLink system that sends nothing to autopilot and passes states from
      * autopilot to simulator
      *
      * @param sysId       SysId of simulator should be the same as autopilot
@@ -49,14 +48,13 @@ public class MAVLinkDisplayOnly extends MAVLinkHILSystem {
 
             if (fistMsg) {
                 fistMsg=false;
-                // we take the fist received position as initial position
+                // we take the first received position as initial position
                 lat0=Math.toRadians(msg.getDouble("lat")*1e-7);
                 lon0=Math.toRadians(msg.getDouble("lon")*1e-7);
                 alt0=msg.getDouble("alt")*1e-3;
             }
             for (int i = 0; i < 4; ++i) {
                 quat[i] = ((Number)((Object[])msg.get("attitude_quaternion"))[i]).doubleValue();
-                // System.out.println("["+quat[0]+","+quat[1]+","+quat[2]+","+quat[3]+"]");
             }        
             lat=Math.toRadians(msg.getDouble("lat")*1e-7);
             lon=Math.toRadians(msg.getDouble("lon")*1e-7);
