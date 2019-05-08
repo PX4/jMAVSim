@@ -67,11 +67,8 @@ public class MAVLinkDisplayOnly extends MAVLinkHILSystem {
             Matrix3d dcm = new Matrix3d(RotationConversion.rotationMatrixByEulerAngles(euler[0],euler[1],euler[2]));   
 
             vehicle.setControl(Arrays.asList(control));     // set 0 throttles
-            vehicle.setPosition(pos);   // we want ideally a local pos groundtruth
+            vehicle.setPosition(pos);   // we want ideally a "local" pos groundtruth
             vehicle.setRotation(dcm); 
-            vehicle.updateBranchGroup();
-
-            // System.out.println("pos=["+(int)(pos.x*1000)+", "+(int)(pos.y*1000)+", "+(int)(pos.z*1000)+"]");
         }
     }
 
