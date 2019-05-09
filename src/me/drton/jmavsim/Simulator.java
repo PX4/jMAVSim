@@ -194,16 +194,6 @@ public class Simulator implements Runnable {
         // Create MAVLink connections
         MAVLinkConnection connHIL = new MAVLinkConnection(world);
         world.addObject(connHIL);
-        MAVLinkConnection connCommon = new MAVLinkConnection(world);
-        // Don't spam ground station with HIL messages
-        if (schema != null) {
-            connCommon.addSkipMessage(schema.getMessageDefinition("HIL_CONTROLS").id);
-            connCommon.addSkipMessage(schema.getMessageDefinition("HIL_ACTUATOR_CONTROLS").id);
-            connCommon.addSkipMessage(schema.getMessageDefinition("HIL_SENSOR").id);
-            connCommon.addSkipMessage(schema.getMessageDefinition("HIL_GPS").id);
-            connCommon.addSkipMessage(schema.getMessageDefinition("HIL_STATE_QUATERNION").id);
-        }
-        world.addObject(connCommon);
 
         // Create ports
         if (PORT == Port.SERIAL) {
@@ -232,30 +222,50 @@ public class Simulator implements Runnable {
 
         // allow HIL and GCS to talk to this port
         connHIL.addNode(autopilotMavLinkPort);
-        connCommon.addNode(autopilotMavLinkPort);
 
-        // UDP port: connection to ground station
-        udpGCMavLinkPort = new UDPMavLinkPort(schema);
-        udpGCMavLinkPort.setDebug(DEBUG_MODE);
         if (COMMUNICATE_WITH_QGC) {
-            udpGCMavLinkPort.setup(qgcIpAddress, qgcPeerPort);
+            MAVLinkConnection connQGC = new MAVLinkConnection(world);
+            // Don't spam ground station with HIL messages
+            if (schema != null) {
+                connQGC.addSkipMessage(schema.getMessageDefinition("HIL_CONTROLS").id);
+                connQGC.addSkipMessage(schema.getMessageDefinition("HIL_ACTUATOR_CONTROLS").id);
+                connQGC.addSkipMessage(schema.getMessageDefinition("HIL_SENSOR").id);
+                connQGC.addSkipMessage(schema.getMessageDefinition("HIL_GPS").id);
+                connQGC.addSkipMessage(schema.getMessageDefinition("HIL_STATE_QUATERNION").id);
+            }
+            world.addObject(connQGC);
+
+            udpGCMavLinkPort = new UDPMavLinkPort(schema);
             udpGCMavLinkPort.setDebug(DEBUG_MODE);
+            udpGCMavLinkPort.setup(qgcIpAddress, qgcPeerPort);
             if (monitorMessage && PORT == Port.SERIAL) {
                 udpGCMavLinkPort.setMonitorMessageID(monitorMessageIds);
             }
-            connCommon.addNode(udpGCMavLinkPort);
+            connQGC.addNode(udpGCMavLinkPort);
+            connQGC.addNode(autopilotMavLinkPort);
         }
 
-        // UDP port: connection to SDK or MAVROS
-        udpSDKMavLinkPort = new UDPMavLinkPort(schema);
-        udpSDKMavLinkPort.setDebug(DEBUG_MODE);
         if (COMMUNICATE_WITH_SDK) {
-            udpSDKMavLinkPort.setup(sdkIpAddress, sdkPeerPort);
+
+            MAVLinkConnection connSDK = new MAVLinkConnection(world);
+            // Don't spam SDK with HIL messages
+            if (schema != null) {
+                connSDK.addSkipMessage(schema.getMessageDefinition("HIL_CONTROLS").id);
+                connSDK.addSkipMessage(schema.getMessageDefinition("HIL_ACTUATOR_CONTROLS").id);
+                connSDK.addSkipMessage(schema.getMessageDefinition("HIL_SENSOR").id);
+                connSDK.addSkipMessage(schema.getMessageDefinition("HIL_GPS").id);
+                connSDK.addSkipMessage(schema.getMessageDefinition("HIL_STATE_QUATERNION").id);
+            }
+            world.addObject(connSDK);
+
+            udpSDKMavLinkPort = new UDPMavLinkPort(schema);
             udpSDKMavLinkPort.setDebug(DEBUG_MODE);
+            udpSDKMavLinkPort.setup(sdkIpAddress, sdkPeerPort);
             if (monitorMessage && PORT == Port.SERIAL) {
                 udpSDKMavLinkPort.setMonitorMessageID(monitorMessageIds);
             }
-            connCommon.addNode(udpSDKMavLinkPort);
+            connSDK.addNode(udpSDKMavLinkPort);
+            connSDK.addNode(autopilotMavLinkPort);
         }
 
         // Set up magnetic field deviations
