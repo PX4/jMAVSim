@@ -223,15 +223,21 @@ public class Simulator implements Runnable {
         // allow HIL and GCS to talk to this port
         connHIL.addNode(autopilotMavLinkPort);
 
+        // We don't want to spam QGC or SDK with HIL messages.
+        String[] skipMessages = {
+            "HIL_CONTROLS",
+            "HIL_ACTUATOR_CONTROLS",
+            "HIL_SENSOR",
+            "HIL_GPS",
+            "HIL_STATE_QUATERNION"
+        };
+
         if (COMMUNICATE_WITH_QGC) {
             MAVLinkConnection connQGC = new MAVLinkConnection(world);
-            // Don't spam ground station with HIL messages
             if (schema != null) {
-                connQGC.addSkipMessage(schema.getMessageDefinition("HIL_CONTROLS").id);
-                connQGC.addSkipMessage(schema.getMessageDefinition("HIL_ACTUATOR_CONTROLS").id);
-                connQGC.addSkipMessage(schema.getMessageDefinition("HIL_SENSOR").id);
-                connQGC.addSkipMessage(schema.getMessageDefinition("HIL_GPS").id);
-                connQGC.addSkipMessage(schema.getMessageDefinition("HIL_STATE_QUATERNION").id);
+                for (String  skipMessage : skipMessages) {
+                    connQGC.addSkipMessage(schema.getMessageDefinition(skipMessage).id);
+                }
             }
             world.addObject(connQGC);
 
@@ -248,13 +254,10 @@ public class Simulator implements Runnable {
         if (COMMUNICATE_WITH_SDK) {
 
             MAVLinkConnection connSDK = new MAVLinkConnection(world);
-            // Don't spam SDK with HIL messages
             if (schema != null) {
-                connSDK.addSkipMessage(schema.getMessageDefinition("HIL_CONTROLS").id);
-                connSDK.addSkipMessage(schema.getMessageDefinition("HIL_ACTUATOR_CONTROLS").id);
-                connSDK.addSkipMessage(schema.getMessageDefinition("HIL_SENSOR").id);
-                connSDK.addSkipMessage(schema.getMessageDefinition("HIL_GPS").id);
-                connSDK.addSkipMessage(schema.getMessageDefinition("HIL_STATE_QUATERNION").id);
+                for (String  skipMessage : skipMessages) {
+                    connSDK.addSkipMessage(schema.getMessageDefinition(skipMessage).id);
+                }
             }
             world.addObject(connSDK);
 
