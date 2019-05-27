@@ -7,9 +7,6 @@ import me.drton.jmavsim.vehicle.AbstractVehicle;
 
 import javax.vecmath.*;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.ArrayList;
 
 /**
  * MAVLinkDisplayOnly is MAVLink bridge between AbstractVehicle and autopilot connected via MAVLink.
@@ -17,9 +14,9 @@ import java.util.ArrayList;
  * It reads HIL_STATE_QUATERNION from the MAVLink and displays the vehicle position and attitude.
  * @author Romain Chiappinelli
  */
-public class MAVLinkDisplayOnly extends MAVLinkHILSystem {
+public class MAVLinkDisplayOnly extends MAVLinkHILSystemBase {
 
-    private boolean fistMsg=true;       // to detect the first MAVLink message
+    private boolean firstMsg=true;       // to detect the first MAVLink message
     private double lat0;                // initial latitude (radians)
     private double lon0;                // initial longitude (radians)
     private double alt0;                // initial altitude (meters)
@@ -46,8 +43,8 @@ public class MAVLinkDisplayOnly extends MAVLinkHILSystem {
     public void handleMessage(MAVLinkMessage msg) {
         if ("HIL_STATE_QUATERNION".equals(msg.getMsgName())) {
 
-            if (fistMsg) {
-                fistMsg=false;
+            if (firstMsg) {
+                firstMsg=false;
                 // we take the first received position as initial position
                 lat0=Math.toRadians(msg.getDouble("lat")*1e-7);
                 lon0=Math.toRadians(msg.getDouble("lon")*1e-7);
@@ -71,7 +68,21 @@ public class MAVLinkDisplayOnly extends MAVLinkHILSystem {
     }
 
     @Override
-    public void update(long t, boolean paused) {
-        super.update(t, true);
-   }
+    public boolean gotHilActuatorControls()
+    {
+        return !firstMsg;
+    }
+
+    @Override
+    public void initMavLink()
+    {
+        firstMsg=true;
+    }
+
+    @Override
+    public void endSim()
+    {
+
+    }
+
 }

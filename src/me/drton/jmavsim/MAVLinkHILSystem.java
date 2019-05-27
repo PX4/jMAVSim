@@ -17,9 +17,9 @@ import java.util.TimeZone;
  * MAVLinkHILSystem is MAVLink bridge between AbstractVehicle and autopilot connected via MAVLink.
  * MAVLinkHILSystem should have the same sysID as the autopilot, but different componentId.
  */
-public class MAVLinkHILSystem extends MAVLinkSystem {
-    private Simulator simulator;
-    protected AbstractVehicle vehicle;
+public class MAVLinkHILSystem extends MAVLinkHILSystemBase {
+    // private Simulator simulator;
+    // private AbstractVehicle vehicle;
     private boolean gotHeartBeat = false;
     private boolean inited = false;
     private boolean stopped = false;
@@ -38,14 +38,10 @@ public class MAVLinkHILSystem extends MAVLinkSystem {
      * @param vehicle     vehicle to connect
      */
     public MAVLinkHILSystem(MAVLinkSchema schema, int sysId, int componentId, AbstractVehicle vehicle) {
-        super(schema, sysId, componentId);
-        this.vehicle = vehicle;
+        super(schema, sysId, componentId, vehicle);
     }
 
-    public void setSimulator(Simulator simulator) {
-        this.simulator = simulator;
-    }
-
+    @Override
     public boolean gotHilActuatorControls() {
         return gotHilActuatorControls;
     }
@@ -147,6 +143,7 @@ public class MAVLinkHILSystem extends MAVLinkSystem {
         }
     }
 
+    @Override
     public void initMavLink() {
         if (vehicle.getSensors().getGPSStartTime() == -1) {
             vehicle.getSensors().setGPSStartTime(simulator.getSimMillis() + 1000);
@@ -155,6 +152,7 @@ public class MAVLinkHILSystem extends MAVLinkSystem {
         inited = true;
     }
 
+    @Override
     public void endSim() {
         if (!inited) {
             return;

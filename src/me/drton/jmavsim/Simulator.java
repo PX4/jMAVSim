@@ -122,7 +122,7 @@ public class Simulator implements Runnable {
     private Visualizer3D visualizer;
     private AbstractMulticopter vehicle;
     private CameraGimbal2D gimbal;
-    private MAVLinkHILSystem hilSystem;
+    private MAVLinkHILSystemBase hilSystem;
     private MAVLinkPort autopilotMavLinkPort;
     private UDPMavLinkPort udpGCMavLinkPort;
     private UDPMavLinkPort udpSDKMavLinkPort;
@@ -302,12 +302,12 @@ public class Simulator implements Runnable {
         // Create MAVLink HIL system
         // SysId should be the same as autopilot, ComponentId should be different!
         if (DISPLAY_ONLY){
-            // paused=true;
             vehicle.setIgnoreGravity(true);
             vehicle.setIgnoreWind(true);
             hilSystem = new MAVLinkDisplayOnly(schema, autopilotSysId, 51, vehicle);
         } else {
             hilSystem = new MAVLinkHILSystem(schema, autopilotSysId, 51, vehicle);
+            visualizer.setHilSystem((MAVLinkHILSystem)hilSystem);
         }
         hilSystem.setSimulator(this);
         //hilSystem.setHeartbeatInterval(0);
@@ -325,7 +325,6 @@ public class Simulator implements Runnable {
         world.addObject(new ReportUpdater(world, visualizer));
 
         visualizer.addWorldModels();
-        visualizer.setHilSystem(hilSystem);
         visualizer.setVehicleViewObject(vehicle);
 
         // set default view and zoom mode
@@ -372,7 +371,7 @@ public class Simulator implements Runnable {
 
                     System.out.println("Shutting down...");
                     if (hilSystem != null) {
-                        hilSystem.endSim();
+                        (hilSystem).endSim();
                     }
 
                     // Close ports
@@ -484,13 +483,13 @@ public class Simulator implements Runnable {
         boolean needsToPause = false;
         long now;
 
-        if (LOCKSTEP_ENABLED) {
+        if (LOCKSTEP_ENABLED && !DISPLAY_ONLY) {
             // In lockstep we run every update with a checkFactor of (e.g. 2).
             // This way every second update is just an IO (input/output) run where
             // time is not increased.
             boolean ioRunOnly = (slowDownCounter % checkFactor != 0);
 
-            if (!hilSystem.gotHilActuatorControls() && !ioRunOnly) {
+            if (!(hilSystem).gotHilActuatorControls() && !ioRunOnly) {
                 advanceTime();
             }
 
