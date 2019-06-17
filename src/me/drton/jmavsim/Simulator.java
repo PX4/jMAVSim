@@ -371,7 +371,7 @@ public class Simulator implements Runnable {
 
                     System.out.println("Shutting down...");
                     if (hilSystem != null) {
-                        (hilSystem).endSim();
+                        hilSystem.endSim();
                     }
 
                     // Close ports
@@ -489,7 +489,7 @@ public class Simulator implements Runnable {
             // time is not increased.
             boolean ioRunOnly = (slowDownCounter % checkFactor != 0);
 
-            if (!(hilSystem).gotHilActuatorControls() && !ioRunOnly) {
+            if (!hilSystem.gotHilActuatorControls() && !ioRunOnly) {
                 advanceTime();
             }
 

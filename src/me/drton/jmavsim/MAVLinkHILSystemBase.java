@@ -4,8 +4,9 @@ import me.drton.jmavlib.mavlink.MAVLinkSchema;
 import me.drton.jmavsim.vehicle.AbstractVehicle;
 
 /**
- * MAVLinkHILSystem is MAVLink bridge between AbstractVehicle and autopilot connected via MAVLink.
- * MAVLinkHILSystem should have the same sysID as the autopilot, but different componentId.
+ * MAVLinkHILSystemBase is the superclass of MAVLinkHILSystem and MAVLinkDisplayOnly. It is a bridge between 
+ * AbstractVehicle and autopilot connected via MAVLink.
+ * MAVLinkHILSystemBase should have the same sysID as the autopilot, but different componentId.
  */
 public abstract class MAVLinkHILSystemBase extends MAVLinkSystem {
     protected Simulator simulator;
