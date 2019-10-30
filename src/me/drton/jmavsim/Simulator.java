@@ -81,18 +81,22 @@ public class Simulator implements Runnable {
 
     // Mag inclination and declination in degrees. If both are left as zero, then DEFAULT_MAG_FIELD is used.
     // If DO_MAG_FIELD_LOOKUP = true or -automag switch is used then both this value and DEFAULT_MAG_FIELD are ignored.
-    // Zurich:  63.32, 2.13
-    // Seattle:
-    // Moscow:
-    // T-burg: 68.53, -11.94
-    public static double  DEFAULT_MAG_INCL = 63.32;
-    public static double  DEFAULT_MAG_DECL = 2.13;
+    // Zurich:  63.39, 2.75
+    // Seattle: 69.00, 15.61
+    // Moscow: 71.53, 11.45
+    // T-burg: 68.17, -11.75
+    // public static double  DEFAULT_MAG_INCL = 63.23;
+    // public static double  DEFAULT_MAG_DECL = 2.44;
+    public static double  DEFAULT_MAG_INCL = 0.f;
+    public static double  DEFAULT_MAG_DECL = 0.f;
     // Alternate way to set mag field vectors directly if MAG_INCL and MAG_DECL are zero.
-    //   If Y value is left as zero, then an approximate declination will be added later based on the origin GPS position.
-    // Zurich:  (0.44831f, 0.01664f, 0.89372f)
-    // Seattle: (0.34252f, 0.09805f, 0.93438f)
-    // Moscow:  (0.31337f, 0.06030f, 0.94771f)
-    public static Vector3d  DEFAULT_MAG_FIELD = new Vector3d(0.44831f, 0.01664f, 0.89372f);
+    //   If Y value is left as zero, the X value specifies the horizontal field and an
+    //   approximate declination will be added later based on the origin GPS position.
+    // Zurich:  (0.21506f, 0.01021f, 0.42974f)
+    // Seattle: (0.18403f, 0.05142f, 0.49779f)
+    // Moscow:  (0.16348f, 0.03311f, 0.49949f)
+    // T-burg:  (0.19202f, -0.03993f, 0.48963f)
+    public static Vector3d  DEFAULT_MAG_FIELD = new Vector3d(0.21506f, 0.01021f, 0.42974f);
 
     public static int    DEFAULT_CAM_PITCH_CHAN =
         4;     // Control gimbal pitch from autopilot, -1 to disable
@@ -291,7 +295,7 @@ public class Simulator implements Runnable {
             simpleEnvironment.setMagField(magFieldLookup(referencePos));
         } else if (DEFAULT_MAG_INCL != 0.0 || DEFAULT_MAG_DECL != 0.0) {
             simpleEnvironment.setMagFieldByInclDecl(DEFAULT_MAG_INCL, DEFAULT_MAG_DECL);
-        } else if (DEFAULT_MAG_FIELD.y == 0.0f && (DEFAULT_MAG_FIELD.x != 0.0 ||
+        } else if (DEFAULT_MAG_FIELD.y == 0.0 && (DEFAULT_MAG_FIELD.x != 0.0 ||
                                                    DEFAULT_MAG_FIELD.z != 0.0)) {
             Vector3d magField = DEFAULT_MAG_FIELD;
             // Set declination based on the initialization position of the Simulator
@@ -303,6 +307,11 @@ public class Simulator implements Runnable {
             magDecl.rotZ(decl);
             magDecl.transform(magField);
             simpleEnvironment.setMagField(magField);
+        } else if (DEFAULT_MAG_FIELD.y != 0.0
+                   && DEFAULT_MAG_FIELD.x != 0.0
+                   && DEFAULT_MAG_FIELD.z != 0.0) {
+
+            simpleEnvironment.setMagField(DEFAULT_MAG_FIELD);
         }
 
         // Create vehicle with sensors

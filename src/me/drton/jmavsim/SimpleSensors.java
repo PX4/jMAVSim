@@ -27,7 +27,7 @@ public class SimpleSensors implements Sensors {
     private float noise_Gyo = 0.01f;
     private float noise_Mag = 0.005f;
     private float noise_Prs = 0.01f;
-    private double magScale = 2.0;   // scaling factor for mag sensor
+    private double magScale = 1.0;   // scaling factor for mag sensor
     private float ephHigh = 100.0f;  // starting GPS horizontal estimation accuracy
     private float ephLow = 0.3f;     // final GPS horizontal estimation accuracy
     private float epvHigh = 100.0f;  // starting GPS vertical estimation accuracy
