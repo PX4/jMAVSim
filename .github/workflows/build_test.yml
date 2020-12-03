@@ -1,0 +1,26 @@
+name: MacOS Build Tests
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - '*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        container:
+        - 'px4io/px4-dev-simulation-focal:2020-11-18' # Gazebo 11
+        - 'px4io/px4-dev-simulation-bionic:2020-11-18' # Gazebo 9
+        - 'px4io/px4-dev-simulation-xenial:2020-11-18' # Gazebo 7
+    steps:
+    - uses: actions/checkout@v1
+    - name: submodule update
+      run: git submodule update --init --recursive
+    - name: Install
+      run: ant
