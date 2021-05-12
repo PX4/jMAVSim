@@ -4,10 +4,10 @@ package me.drton.jmavsim;
  * Updater for the visualizer's simulation state's report.
  */
 public class ReportUpdater extends WorldObject {
-    private static final long UPDATE_FREQ_MS = 250;
+    private static final long UPDATE_INTERVAL_MS = 200;
 
     private static final StringBuilder builder = new StringBuilder();
-    private static long updateFreq;
+    private static long updateIntervalMs;
     private static long nextUpdateT;
     private final Visualizer3D visualizer;
 
@@ -15,20 +15,20 @@ public class ReportUpdater extends WorldObject {
     public ReportUpdater(World world, Visualizer3D visualizer) {
         super(world);
         this.visualizer = visualizer;
-        setUpdateFreq(UPDATE_FREQ_MS);
+        setUpdateInterval(UPDATE_INTERVAL_MS);
     }
 
-    public static long getUpdateFreq() {
-        return ReportUpdater.updateFreq;
+    public static long getUpdateInterval() {
+        return ReportUpdater.updateIntervalMs;
     }
 
-    public static void setUpdateFreq(long updateFreq) {
-        ReportUpdater.updateFreq = updateFreq;
-        ReportUpdater.nextUpdateT = System.currentTimeMillis() + updateFreq;
+    public static void setUpdateInterval(long updateInterval) {
+        ReportUpdater.updateIntervalMs = updateInterval;
+        ReportUpdater.nextUpdateT = System.currentTimeMillis() + updateInterval;
     }
 
-    public static void resetUpdateFreq() {
-        setUpdateFreq(UPDATE_FREQ_MS);
+    public static void resetUpdateInterval() {
+        setUpdateInterval(UPDATE_INTERVAL_MS);
     }
 
     @Override
@@ -37,7 +37,7 @@ public class ReportUpdater extends WorldObject {
             return;
         }
 
-        nextUpdateT = t + updateFreq;
+        nextUpdateT = t + updateIntervalMs;
 
         if (!visualizer.showReportText()) {
             return;

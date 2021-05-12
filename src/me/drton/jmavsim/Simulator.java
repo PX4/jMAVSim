@@ -57,7 +57,7 @@ public class Simulator implements Runnable {
     public static boolean DEBUG_MODE = false;
     public static boolean DISPLAY_ONLY = false; // display HIL_STATE_QUATERNION from the autopilot, simulation engine disabled
 
-    public static final int    DEFAULT_SIM_RATE = 250; // Hz
+    public static final int    DEFAULT_SIM_RATE = 200; // Hz
     public static final double    DEFAULT_SPEED_FACTOR = 1.0;
     public static final int    DEFAULT_AUTOPILOT_SYSID =
         -1; // System ID of autopilot to communicate with. -1 to auto set ID on first received heartbeat.

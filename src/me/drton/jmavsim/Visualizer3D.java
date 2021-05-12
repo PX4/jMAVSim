@@ -582,9 +582,9 @@ public class Visualizer3D extends JFrame {
         reportPaused = pause;
         reportPanel.setIsFocusable(pause);
         if (pause) {
-            ReportUpdater.setUpdateFreq(0L);
+            ReportUpdater.setUpdateInterval(0L);
         } else {
-            ReportUpdater.resetUpdateFreq();
+            ReportUpdater.resetUpdateInterval();
         }
     }
 
