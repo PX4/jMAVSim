@@ -68,8 +68,8 @@ public class Simulator implements Runnable {
     public static final String DEFAULT_SERIAL_PATH = "/dev/tty.usbmodem1";
     public static final int    DEFAULT_SERIAL_BAUD_RATE = 230400;
     public static final String LOCAL_HOST = "127.0.0.1";
-    // public static final String DEFAULT_VEHICLE_MODEL = "models/3dr_arducopter_quad_x.obj";
-    public static final String DEFAULT_VEHICLE_MODEL = "models/cessna.obj";
+    public static final String VEHICLE_MODEL_FW = "models/cessna.obj";
+    public static final String VEHICLE_MODEL_MC = "models/3dr_arducopter_quad_x.obj";
     public static final String DEFAULT_GIMBAL_MODEL =
         "models/gimbal.png";  // blank for invisible gimbal
 
@@ -107,6 +107,8 @@ public class Simulator implements Runnable {
         1.57;  // channel value to physical movement (+/-90 deg)
     public static Double DEFAULT_CAM_ROLL_SCAL  =
         1.57;  // channel value to physical movement (+/-90 deg)
+
+    public static String vehicle_model = VEHICLE_MODEL_MC;
 
     private static int sleepInterval = (int)1e6 / DEFAULT_SIM_RATE;  // Main loop interval, in us
     private static double speedFactor = DEFAULT_SPEED_FACTOR;
@@ -438,7 +440,7 @@ public class Simulator implements Runnable {
 
     private AbstractMulticopter buildMulticopter() {
         Vector3d gc = new Vector3d(0.0, 0.0, 0.0);  // gravity center
-        AbstractMulticopter vehicle = new Quadcopter(world, DEFAULT_VEHICLE_MODEL, "x", "default",
+        AbstractMulticopter vehicle = new Quadcopter(world, vehicle_model, "x", "default",
                                                      0.33 / 2, 4.0, 0.05, 0.005, gc, SHOW_GUI);
         Matrix3d I = new Matrix3d();
         // Moments of inertia
@@ -464,7 +466,7 @@ public class Simulator implements Runnable {
     // 200mm, 250g small quad X "Leora" with AutoQuad style layout (clockwise from front)
     private AbstractMulticopter buildAQ_leora() {
         Vector3d gc = new Vector3d(0.0, 0.0, 0.0);  // gravity center
-        AbstractMulticopter vehicle = new Quadcopter(world, DEFAULT_VEHICLE_MODEL, "x", "cw_fr", 0.1, 1.35,
+        AbstractMulticopter vehicle = new Quadcopter(world, vehicle_model, "x", "cw_fr", 0.1, 1.35,
                                                      0.02, 0.0005, gc, SHOW_GUI);
 
         Matrix3d I = new Matrix3d();
@@ -640,6 +642,7 @@ public class Simulator implements Runnable {
     public final static String SPEED_FACTOR_STRING = "-f";
     public final static String LOCKSTEP_STRING = "-lockstep";
     public final static String DISPLAY_ONLY_STRING = "-disponly";
+    public final static String VEHICLE_MODEL_STRING = "-fw or -mc";
     public final static String CMD_STRING =
         "java [-Xmx512m] -cp lib/*:out/production/jmavsim.jar me.drton.jmavsim.Simulator";
     public final static String CMD_STRING_JAR = "java [-Xmx512m] -jar jmavsim_run.jar";
@@ -658,7 +661,8 @@ public class Simulator implements Runnable {
                                               GUI_VIEW_STRING + "] [" +
                                               REP_STRING + "] [" +
                                               PRINT_INDICATION_STRING + "] [" +
-                                              DISPLAY_ONLY_STRING + "]";
+                                              DISPLAY_ONLY_STRING + "] [" +
+                                              VEHICLE_MODEL_STRING + "]";
 
     public static void main(String[] args)
     throws InterruptedException, IOException {
@@ -918,6 +922,10 @@ public class Simulator implements Runnable {
                 LOCKSTEP_ENABLED = true;
             } else if (arg.equals("-debug")) {
                 DEBUG_MODE = true;
+            } else if (arg.equalsIgnoreCase("-fw")) {
+                vehicle_model = VEHICLE_MODEL_FW;
+            } else if (arg.equalsIgnoreCase("-mc")) {
+            	vehicle_model = VEHICLE_MODEL_MC;
             } else {
                 System.err.println("Unknown flag: " + arg + ", usage: " + USAGE_STRING);
                 return;
@@ -995,6 +1003,10 @@ public class Simulator implements Runnable {
         System.out.println("      Disable the simulation engine.");
         System.out.println("      Display the autopilot states from HIL_STATE_QUATERNION.");
         System.out.println("      Compatible with simulation-in-hardware.");
+        System.out.println(VEHICLE_MODEL_STRING);
+        System.out.println("      Choose the vehicle model to be displayed.");
+        System.out.println("      -mc will display a multicopter, this is the default vehicle.");
+        System.out.println("      -fw will display a fixed wing aircraft.");
         System.out.println("");
         System.out.println("Key commands (in the visualizer window):");
         System.out.println("");
